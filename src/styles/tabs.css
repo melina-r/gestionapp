@@ -1,0 +1,32 @@
+/* Contenedor de tabs */
+.tabs-container {
+  display: flex;
+  gap: 12px;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 0 16px;
+  background: #fff;
+}
+
+/* Botón de tab */
+.tab-btn {
+  padding: 10px 16px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #555;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Hover */
+.tab-btn:hover {
+  color: #1976d2;
+}
+
+/* Tab seleccionada */
+.tab-btn.selected {
+  color: #1976d2;
+  border-bottom: 3px solid #1976d2;
+}

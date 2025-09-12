@@ -1,0 +1,39 @@
+/* Contenedor de todas las balance cards */
+.balance-cards-container {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* Cada tarjeta individual */
+.balance-card {
+  flex: 1;
+  background: #ffffff;
+  border: 1px solid #e5e7eb; /* gris suave */
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+
+/* Etiqueta superior (Ingresos, Egresos, Balance) */
+.balance-card-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280; /* gris medio */
+}
+
+/* Valor principal */
+.balance-card-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827; /* gris casi negro */
+}
+
+/* Descripción inferior */
+.balance-card-desc {
+  font-size: 13px;
+  color: #9ca3af; /* gris claro */
+}

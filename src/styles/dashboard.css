@@ -1,0 +1,31 @@
+/* Contenedor principal del dashboard */
+.dashboard-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+  background: #f9fafb; /* gris claro de fondo */
+  min-height: 100vh;
+  box-sizing: border-box;
+  font-family: 'Inter', 'Roboto', sans-serif;
+}
+
+/* Balance cards arriba */
+.balance-cards-container {
+  display: flex;
+  gap: 16px;
+}
+
+/* Resume (tabla + usuarios) al medio */
+.resume-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* tabla más ancha que usuarios */
+  gap: 16px;
+}
+
+/* Gráficos abajo */
+.graphics-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}

@@ -1,0 +1,115 @@
+/* Contenedor principal (tabla + usuarios) */
+.resume-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* tabla ocupa más espacio que usuarios */
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* Asegura que hijos (tabla y usuarios) tengan mismo alto visual */
+.resume-container > * {
+  align-self: start;
+}
+
+
+/* Contenedor de la tabla */
+.resume-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 24px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden; /* para que los bordes redondeados se apliquen */
+}
+
+/* Encabezados */
+.resume-table th {
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151; /* gris oscuro */
+  background: #f9fafb; /* gris muy claro */
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Celdas */
+.resume-table td {
+  font-size: 14px;
+  color: #111827; /* casi negro */
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: start;
+}
+
+/* Última fila sin borde inferior */
+.resume-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Hover en filas */
+.resume-table tbody tr:hover {
+  background-color: #f3f4f6; /* gris claro */
+}
+
+/* Contenedor general */
+.resume-users {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+/* Título */
+.resume-users h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827; /* gris casi negro */
+  margin-bottom: 12px;
+}
+
+/* Lista */
+.resume-users-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Cada item */
+.resume-user-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Último sin borde */
+.resume-user-item:last-child {
+  border-bottom: none;
+}
+
+/* Avatar */
+.resume-user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Nombre */
+.resume-user-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Email */
+.resume-user-email {
+  font-size: 13px;
+  color: #6b7280; /* gris medio */
+}

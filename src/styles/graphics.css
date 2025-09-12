@@ -1,0 +1,26 @@
+/* Contenedor de gráficos */
+.graphics-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+/* Estilo base para cada gráfico */
+.line-chart,
+.bar-chart {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Canvas ocupa todo el ancho */
+.line-chart canvas,
+.bar-chart canvas {
+  width: 100% !important;
+  height: auto !important;
+}
