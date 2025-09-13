@@ -4,6 +4,7 @@
   flex-direction: column;
   gap: 24px;
   padding: 24px;
+  padding-top: 94px; /* Espacio para header fijo + un poco más */
   background: #f9fafb; /* gris claro de fondo */
   min-height: 100vh;
   box-sizing: border-box;
