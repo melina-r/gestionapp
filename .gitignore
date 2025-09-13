@@ -1,0 +1,22 @@
+# Dependencias instaladas por npm/yarn/pnpm
+node_modules/
+
+# Build de Vite/React
+dist/
+
+# Archivos de logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Archivos de entorno (contienen claves sensibles)
+.env
+
+# Archivos temporales del sistema/IDE
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
