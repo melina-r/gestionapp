@@ -6,11 +6,11 @@ import { Chart, LineElement, PointElement, BarElement, CategoryScale, LinearScal
 Chart.register(LineElement, PointElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 const monthlyExpensesData = {
-    labels: ['Alquiler', 'Comida', 'Transporte', 'Servicios', 'Otros'],
+    labels: ['Mantenimiento', 'Servicios Básicos', 'Limpieza', 'Seguridad', 'Reparaciones'],
     datasets: [
         {
-            label: 'Gastos del mes',
-            data: [500, 300, 100, 150, 50],
+            label: 'Gastos del consorcio',
+            data: [18500, 12000, 8500, 15000, 14000],
             borderColor: '#36A2EB',
             backgroundColor: 'rgba(54,162,235,0.2)',
             fill: true,
@@ -27,8 +27,8 @@ const yearlyExpensesData = {
     ],
     datasets: [
         {
-            label: 'Gastos por mes',
-            data: [1200, 1100, 1150, 1300, 1250, 1400, 1350, 1200, 1250, 1300, 1400, 1500],
+            label: 'Gastos del consorcio por mes',
+            data: [68000, 65000, 72000, 85000, 78000, 92000, 89000, 71000, 75000, 82000, 95000, 105000],
             backgroundColor: '#36A2EB',
         },
     ],
