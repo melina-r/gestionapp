@@ -33,12 +33,19 @@
   align-items: center;
 }
 
-.actions input {
+
+.actions input,
+.actions select {
   padding: 8px 12px;
   border: 1px solid #ddd;
   border-radius: 6px;
   background-color: #fafafa;
   color: #16325c;
+  font-size: 1rem;
+}
+
+.actions select:focus {
+  outline: 2px solid #b3c6ff;
 }
 
 .filter-btn {
@@ -47,6 +54,7 @@
   background: #f9f9f9;
   border-radius: 6px;
   cursor: pointer;
+  color: #16325c;
 }
 
 .icon-btn {
@@ -60,6 +68,27 @@
 .table-wrapper {
   flex: 1;
   overflow-y: auto;
+}
+
+/* Scrollbar personalizado para la tabla */
+.table-wrapper::-webkit-scrollbar {
+  width: 8px;
+  background: #f1f3f4;
+  border-radius: 8px;
+}
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: #dbeafe;
+  border-radius: 8px;
+  border: 2px solid #fafafa;
+}
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #b3c6ff;
+}
+
+/* Firefox */
+.table-wrapper {
+  scrollbar-width: thin;
+  scrollbar-color: #dbeafe #f1f3f4;
 }
 
 .details-table {

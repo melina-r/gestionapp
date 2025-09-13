@@ -1,12 +1,19 @@
-import React from 'react';
+
+import React, { useEffect, useState } from 'react';
 import '../styles/resume.css';
 
-// Datos de ejemplo
-const gastos = [
-    { nombre: 'Cena en restaurante', registradoPor: 'Juan Pérez', monto: 3500 },
-    { nombre: 'Taxi', registradoPor: 'Ana Gómez', monto: 1200 },
-    { nombre: 'Supermercado', registradoPor: 'Carlos Ruiz', monto: 5400 },
-];
+function parseCSV(csv) {
+    const lines = csv.trim().split('\n');
+    const headers = lines[0].split(';');
+    return lines.slice(1).map(line => {
+        const values = line.split(';');
+        const obj = {};
+        headers.forEach((h, i) => {
+            obj[h.trim()] = values[i].trim();
+        });
+        return obj;
+    }).slice(0, 5).sort((a, b) => new Date(b.fecha) - new Date(a.fecha)); // Ordenar por fecha descendente y limitar a 5
+}
 
 const usuarios = [
     {
@@ -27,6 +34,19 @@ const usuarios = [
 ];
 
 export default function Resume() {
+    const [gastos, setGastos] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetch('/src/data/gastos.csv')
+            .then(res => res.text())
+            .then(text => {
+                setGastos(parseCSV(text));
+                setLoading(false);
+            })
+            .catch(() => setLoading(false));
+    }, []);
+
     return (
         <div className="resume-container">
             {/* Tabla de gastos */}
@@ -39,13 +59,19 @@ export default function Resume() {
                     </tr>
                 </thead>
                 <tbody>
-                    {gastos.map((gasto, idx) => (
-                        <tr key={idx}>
-                            <td>{gasto.nombre}</td>
-                            <td>{gasto.registradoPor}</td>
-                            <td>${gasto.monto}</td>
-                        </tr>
-                    ))}
+                    {loading ? (
+                        <tr><td colSpan={3}>Cargando...</td></tr>
+                    ) : gastos.length === 0 ? (
+                        <tr><td colSpan={3}>Sin datos</td></tr>
+                    ) : (
+                        gastos.map((gasto, idx) => (
+                            <tr key={idx}>
+                                <td>{gasto.titulo}</td>
+                                <td>{gasto.autor}</td>
+                                <td>${gasto.valor}</td>
+                            </tr>
+                        ))
+                    )}
                 </tbody>
             </table>
 

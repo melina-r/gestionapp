@@ -1,0 +1,11 @@
+titulo;descripcion;valor;fecha;autor;comprobante
+Compra de insumos;Compra de materiales para el proyecto;1500;2025-01-15;Juan Perez;src/data/comprobantes/cmp1.jpg
+Pago de servicios;Pago de electricidad y agua;300;2025-02-10;Ana Gómez;src/data/comprobantes/cmp1.jpg
+Transporte;Gastos de transporte para reuniones;200;2025-03-05;Carlos Ruiz;src/data/comprobantes/cmp1.jpg
+Alquiler de oficina;Pago mensual del alquiler de la oficina;2500;2025-04-01;Ana Gómez;src/data/comprobantes/cmp1.jpg
+Publicidad;Campaña publicitaria en redes sociales;800;2025-05-20;Carlos Ruiz;src/data/comprobantes/cmp1.jpg
+Mantenimiento;Reparación de equipos y mantenimiento;400;2025-06-18;Juan Perez;src/data/comprobantes/cmp1.jpg
+Software;Compra de licencias de software;600;2025-07-22;Ana Gómez;src/data/comprobantes/cmp1.jpg
+Servicios profesionales;Honorarios de consultores externos;1200;2025-08-25;Carlos Ruiz;src/data/comprobantes/cmp1.jpg
+Papelería;Compra de papelería y suministros de oficina;100;2025-09-28;Juan Perez;src/data/comprobantes/cmp1.jpg
+Eventos;Organización de eventos y reuniones;700;2025-11-30;Ana Gómez;src/data/comprobantes/cmp1.jpg
