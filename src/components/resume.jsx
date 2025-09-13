@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+import AddMemberModal from './addMemberModal';
 import '../styles/resume.css';
 
 function parseCSV(csv) {
@@ -36,6 +37,7 @@ const usuarios = [
 export default function Resume() {
     const [gastos, setGastos] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         fetch('/src/data/gastos.csv')
@@ -46,6 +48,23 @@ export default function Resume() {
             })
             .catch(() => setLoading(false));
     }, []);
+
+    const handleAddMember = async (email) => {
+        console.log('Enviando invitación a:', email);
+
+        // Simular envío de email (aquí implementarías la lógica real)
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                // Simular éxito o fallo
+                if (Math.random() > 0.1) { // 90% de éxito
+                    alert(`Invitación enviada exitosamente a ${email}`);
+                    resolve();
+                } else {
+                    reject(new Error('Error simulado en el envío'));
+                }
+            }, 1500);
+        });
+    };
 
     return (
         <div className="resume-container">
@@ -77,7 +96,15 @@ export default function Resume() {
 
             {/* Lista de usuarios */}
             <div className="resume-users">
-                <h3>Usuarios</h3>
+                <div className="users-header">
+                    <h3>Usuarios</h3>
+                    <button
+                        className="add-member-btn"
+                        onClick={() => setIsModalOpen(true)}
+                    >
+                        + Agregar Miembro
+                    </button>
+                </div>
                 <ul className="resume-users-list">
                     {usuarios.map((usuario, idx) => (
                         <li key={idx} className="resume-user-item">
@@ -94,6 +121,12 @@ export default function Resume() {
                     ))}
                 </ul>
             </div>
+
+            <AddMemberModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSubmit={handleAddMember}
+            />
         </div>
     );
 }

@@ -2,7 +2,7 @@ import React from 'react';
 import '../styles/header.css';
 import RegisterExpenseModal from './registerModal';
 
-const Header = ({ user, onLogout }) => {
+const Header = ({ user, onLogout, onNavigateHome, showRegisterButton = false }) => {
     const [hovered, setHovered] = React.useState({
         icon: false,
         title: false,
@@ -31,6 +31,8 @@ const Header = ({ user, onLogout }) => {
                     className={`title${hovered.title ? ' highlight' : ''}`}
                     onMouseEnter={() => setHovered(h => ({ ...h, title: true }))}
                     onMouseLeave={() => setHovered(h => ({ ...h, title: false }))}
+                    onClick={onNavigateHome}
+                    style={{ cursor: 'pointer' }}
                 >
                     GestionApp
                 </span>
@@ -38,8 +40,8 @@ const Header = ({ user, onLogout }) => {
 
             {/* Right: Profile + Button */}
             <div className="header-right">
-                {/* Register Expense Button */}
-                <RegisterExpenseModal />
+                {/* Register Expense Button - Solo mostrar si showRegisterButton es true */}
+                {showRegisterButton && <RegisterExpenseModal />}
                 {/* Profile Circle */}
                 <div style={{ position: 'relative' }}>
                     <div
