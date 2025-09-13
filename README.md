@@ -1,4 +1,24 @@
-# React + Vite
+# Gestión App - Prototype
+
+A management application prototype built with React and Vite, featuring login functionality and consortium management capabilities.
+
+## Getting Started
+
+### 1. Install Dependencies
+
+```bash
+npm install
+```
+
+### 2. Run the Development Server
+
+```bash
+npm run dev
+```
+
+The application will start and be available at `http://localhost:5173`.
+
+## React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
