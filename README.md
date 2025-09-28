@@ -22,7 +22,7 @@ docker-compose up -d
 
 This will start:
 - **PostgreSQL** on port `5432`
-- **pgAdmin** on port `8080` for database management
+- **Adminer** on port `8080` for database management
 
 #### Database Connection Details
 
@@ -32,11 +32,9 @@ This will start:
 - **Username**: `gestionuser`
 - **Password**: `gestionpass`
 
-#### Access pgAdmin
+#### Access Adminer
 
-Visit `http://localhost:8080` and login with:
-- **Email**: `admin@gestionapp.com`
-- **Password**: `admin123`
+Visit `http://localhost:8080` to access the database management interface.
 
 ### 3. Run the Development Server
 
