@@ -10,7 +10,35 @@ A management application prototype built with React and Vite, featuring login fu
 npm install
 ```
 
-### 2. Run the Development Server
+### 2. Database Setup
+
+The project uses PostgreSQL with Docker for data storage.
+
+#### Start the Database
+
+```bash
+docker-compose up -d
+```
+
+This will start:
+- **PostgreSQL** on port `5432`
+- **pgAdmin** on port `8080` for database management
+
+#### Database Connection Details
+
+- **Host**: `localhost`
+- **Port**: `5432`
+- **Database**: `gestionapp`
+- **Username**: `gestionuser`
+- **Password**: `gestionpass`
+
+#### Access pgAdmin
+
+Visit `http://localhost:8080` and login with:
+- **Email**: `admin@gestionapp.com`
+- **Password**: `admin123`
+
+### 3. Run the Development Server
 
 ```bash
 npm run dev
