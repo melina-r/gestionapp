@@ -1,7 +1,11 @@
 # main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import users, items
+from routers import users, expenses
+from dotenv import load_dotenv
+
+# Cargar variables de entorno
+load_dotenv()
 
 app = FastAPI()
 
@@ -15,4 +19,4 @@ app.add_middleware(
 )
 
 app.include_router(users.router)
-app.include_router(items.router)
+app.include_router(expenses.router)
