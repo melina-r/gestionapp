@@ -214,24 +214,41 @@ def get_expenses_by_user(user_id: int):
 
 @router.get("/group/{group_id}")
 def get_expenses_by_group(group_id: int):
+    # conn = get_db_connection()
+    # try:
+    #     with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+    #         cursor.execute(
+    #             """
+    #             SELECT g.id, g.titulo, g.descripcion, g.valor, g.fecha, g.autor,
+    #                    g.usuario_id, g.comprobante, u.nombre, u.apellido
+    #             FROM gastos g
+    #             JOIN usuario_grupos ug ON g.usuario_id = ug.usuario_id
+    #             JOIN usuarios u ON g.usuario_id = u.id
+    #             WHERE ug.grupo_id = %s
+    #             ORDER BY g.fecha DESC;
+    #             """,
+    #             (group_id,),
+    #         )
+    #         return [dict(r) for r in cursor.fetchall()]
+    # except psycopg2.Error as e:
+    #     raise HTTPException(status_code=500, detail=f"Error al obtener gastos del grupo: {e.pgerror or str(e)}")
+    # finally:
+    #     conn.close()
+    
+    # HASTA QUE AGREGUEMOS LO DE GRUPOS COPIO ESTO:
     conn = get_db_connection()
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cursor:
             cursor.execute(
                 """
-                SELECT g.id, g.titulo, g.descripcion, g.valor, g.fecha, g.autor,
-                       g.usuario_id, g.comprobante, u.nombre, u.apellido
-                FROM gastos g
-                JOIN usuario_grupos ug ON g.usuario_id = ug.usuario_id
-                JOIN usuarios u ON g.usuario_id = u.id
-                WHERE ug.grupo_id = %s
-                ORDER BY g.fecha DESC;
-                """,
-                (group_id,),
+                SELECT id, titulo, descripcion, valor, fecha, autor, usuario_id, comprobante
+                FROM gastos
+                ORDER BY fecha DESC;
+                """
             )
             return [dict(r) for r in cursor.fetchall()]
     except psycopg2.Error as e:
-        raise HTTPException(status_code=500, detail=f"Error al obtener gastos del grupo: {e.pgerror or str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error al obtener gastos: {e.pgerror or str(e)}")
     finally:
         conn.close()
 

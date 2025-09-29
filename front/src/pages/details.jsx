@@ -1,80 +1,106 @@
-
 import React, { useState, useEffect } from "react";
 import "../styles/details.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
-function parseCSV(csv) {
-  const lines = csv.trim().split('\n');
-  const headers = lines[0].split(';');
-  return lines.slice(1).map((line, idx) => {
-    const values = line.split(';');
-    const obj = { id: `gasto-${idx}` };
-    headers.forEach((h, i) => {
-      obj[h.trim()] = values[i].trim();
-    });
-    return obj;
-  });
-}
-
 const details = () => {
   const [search, setSearch] = useState("");
   const [propietario, setPropietario] = useState("");
-  const [fecha, setFecha] = useState("");
+  const [fecha, setFecha] = useState(null); // Cambiar de "" a null
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showCalendar, setShowCalendar] = useState(false);
+  const [error, setError] = useState("");
   const [comprobanteModal, setComprobanteModal] = useState(null);
-function DateInputCalendar({ value, onChange }) {
-  const ref = React.useRef(null);
-  React.useEffect(() => {
-    if (ref.current) {
-      if (typeof ref.current.showPicker === "function") {
-        ref.current.showPicker();
-      } else {
-        ref.current.focus();
+
+  function DateInputCalendar({ value, onChange }) {
+    const ref = React.useRef(null);
+    React.useEffect(() => {
+      if (ref.current) {
+        if (typeof ref.current.showPicker === "function") {
+          ref.current.showPicker();
+        } else {
+          ref.current.focus();
+        }
       }
+    }, []);
+    return (
+      <input
+        ref={ref}
+        type="date"
+        value={value || ""}
+        onChange={e => onChange(e.target.value)}
+        style={{
+          position: 'absolute',
+          left: 0,
+          top: '110%',
+          zIndex: 10,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          border: '1px solid #ddd',
+          borderRadius: '6px',
+          background: '#fff',
+        }}
+        autoFocus
+      />
+    );
+  }
+
+  // Función para obtener gastos desde la API
+  const fetchExpenses = async () => {
+    setLoading(true);
+    setError("");
+    
+    try {
+      console.log('🔄 Obteniendo gastos desde la API...');
+      
+      const response = await fetch('http://localhost:8000/expenses/');
+      
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+      
+      const expenses = await response.json();
+      console.log('✅ Gastos obtenidos:', expenses);
+      
+      // Transformar los datos para que coincidan con el formato esperado
+      const transformedData = expenses.map((expense) => ({
+        id: expense.id,
+        titulo: expense.titulo,
+        descripcion: expense.descripcion || '',
+        valor: expense.valor,
+        fecha: expense.fecha, // Ya viene en formato YYYY-MM-DD
+        autor: expense.autor,
+        comprobante: expense.comprobante
+      }));
+      
+      setData(transformedData);
+      
+    } catch (err) {
+      console.error('❌ Error al obtener gastos:', err);
+      setError(`Error al cargar los gastos: ${err.message}`);
+    } finally {
+      setLoading(false);
     }
-  }, []);
-  return (
-    <input
-      ref={ref}
-      type="date"
-      value={value || ""}
-      onChange={e => onChange(e.target.value)}
-      style={{
-        position: 'absolute',
-        left: 0,
-        top: '110%',
-        zIndex: 10,
-        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-        border: '1px solid #ddd',
-        borderRadius: '6px',
-        background: '#fff',
-      }}
-      autoFocus
-    />
-  );
-}
+  };
 
+  // Cargar datos al montar el componente
   useEffect(() => {
-    fetch('/src/data/gastos.csv')
-      .then(res => res.text())
-      .then(text => {
-        setData(parseCSV(text));
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    console.log('🏁 Componente de detalles montado, cargando datos...');
+    fetchExpenses();
   }, []);
 
-  // Obtener propietarios únicos
-  const propietarios = [...new Set(data.map((g) => g.autor))];
+  // Obtener propietarios únicos (mejorado)
+  const propietarios = [...new Set(
+    data
+      .map((g) => g.autor)
+      .filter(autor => autor && autor.trim()) // Filtrar vacíos y espacios
+  )].sort(); // Ordenar alfabéticamente
 
-  // Filtrar datos
+  // Funciones de formato de fecha
   function formatDateToInput(fechaStr) {
-    // formato yyyy-mm-dd en el csv
+    // formato yyyy-mm-dd en la API
     return fechaStr;
   }
+  
   function formatDateToString(dateObj) {
     if (!dateObj || !(dateObj instanceof Date) || isNaN(dateObj.getTime())) return "";
     const yyyy = dateObj.getFullYear();
@@ -83,6 +109,7 @@ function DateInputCalendar({ value, onChange }) {
     return `${yyyy}-${mm}-${dd}`;
   }
 
+  // Filtrar datos
   const filteredData = data.filter((gasto) => {
     const matchTitulo = gasto.titulo && gasto.titulo.toLowerCase().includes(search.toLowerCase());
     const matchPropietario = propietario ? gasto.autor === propietario : true;
@@ -92,6 +119,11 @@ function DateInputCalendar({ value, onChange }) {
     }
     return matchTitulo && matchPropietario && matchFecha;
   }).sort((a, b) => new Date(b.fecha) - new Date(a.fecha)); // Ordenar por fecha descendente
+
+  // Función para refrescar los datos
+  const handleRefresh = () => {
+    fetchExpenses();
+  };
 
   return (
     <div className="details-container">
@@ -112,35 +144,71 @@ function DateInputCalendar({ value, onChange }) {
               style={{ marginRight: "8px" }}
             >
               <option value="">Todos los propietarios</option>
-              {propietarios.map((p) => (
-                <option key={p} value={p}>{p}</option>
+              {propietarios.map((p, index) => (
+                <option key={`propietario-${index}-${p}`} value={p}>
+                  {p}
+                </option>
               ))}
             </select>
+            
             {/* Date Picker visual */}
-                <div style={{ display: 'inline-block', marginRight: '8px', minWidth: '140px' }}>
-                  <DatePicker
-                    selected={fecha}
-                    onChange={date => setFecha(date)}
-                    dateFormat="yyyy-MM-dd"
-                    placeholderText="Seleccionar fecha"
-                    className="filter-btn"
-                    popperPlacement="bottom"
-                    isClearable
-                  />
-                </div>
+            <div style={{ display: 'inline-block', marginRight: '8px', minWidth: '140px' }}>
+              <DatePicker
+                selected={fecha}
+                onChange={date => setFecha(date)}
+                dateFormat="yyyy-MM-dd"
+                placeholderText="Seleccionar fecha"
+                className="filter-btn"
+                popperPlacement="bottom"
+                isClearable
+              />
+            </div>
+            
             <button
               className="filter-btn"
               onClick={() => {
                 setPropietario("");
-                setFecha("");
+                setFecha(null); // Cambiar de "" a null
                 setSearch("");
               }}
               type="button"
+              style={{ marginRight: "8px" }}
             >
               Limpiar filtros
             </button>
+            
+            {/* Botón para refrescar datos */}
+            <button
+              className="filter-btn"
+              onClick={handleRefresh}
+              disabled={loading}
+              type="button"
+              title="Actualizar datos"
+            >
+              {loading ? "🔄" : "↻"} Actualizar
+            </button>
           </div>
         </div>
+
+        {/* Mostrar error si existe */}
+        {error && (
+          <div style={{
+            background: '#ffebee',
+            color: '#c62828',
+            padding: '12px',
+            borderRadius: '4px',
+            margin: '16px 0',
+            border: '1px solid #ffcdd2'
+          }}>
+            {error}
+            <button 
+              onClick={handleRefresh} 
+              style={{ marginLeft: '12px', padding: '4px 8px' }}
+            >
+              Reintentar
+            </button>
+          </div>
+        )}
 
         <div className="table-wrapper">
           <table className="details-table">
@@ -156,9 +224,11 @@ function DateInputCalendar({ value, onChange }) {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={7} style={{textAlign: "center"}}>Cargando...</td></tr>
+                <tr><td colSpan={6} style={{textAlign: "center"}}>🔄 Cargando gastos...</td></tr>
+              ) : error && data.length === 0 ? (
+                <tr><td colSpan={6} style={{textAlign: "center"}}>❌ Error al cargar datos</td></tr>
               ) : filteredData.length === 0 ? (
-                <tr><td colSpan={7} style={{textAlign: "center"}}>Sin datos</td></tr>
+                <tr><td colSpan={6} style={{textAlign: "center"}}>📭 Sin datos que mostrar</td></tr>
               ) : (
                 filteredData.map((gasto) => (
                   <tr key={gasto.id}>
@@ -177,7 +247,9 @@ function DateInputCalendar({ value, onChange }) {
                           title="Ver comprobante"
                           onClick={() => setComprobanteModal(gasto.comprobante)}
                         >📄</button>
-                      ) : null}
+                      ) : (
+                        <span style={{ color: '#999' }}>-</span>
+                      )}
                     </td>
                   </tr>
                 ))
@@ -185,6 +257,20 @@ function DateInputCalendar({ value, onChange }) {
             </tbody>
           </table>
         </div>
+
+        {/* Información adicional */}
+        {!loading && !error && (
+          <div style={{
+            marginTop: '16px',
+            padding: '8px',
+            background: '#f5f5f5',
+            borderRadius: '4px',
+            fontSize: '0.9em',
+            color: '#666'
+          }}>
+            📊 Mostrando {filteredData.length} de {data.length} gastos totales
+          </div>
+        )}
 
         {/* Modal comprobante */}
         {comprobanteModal && (
@@ -232,7 +318,14 @@ function DateInputCalendar({ value, onChange }) {
                 src={comprobanteModal}
                 alt="Comprobante"
                 style={{ maxWidth: "80vw", maxHeight: "80vh", borderRadius: "6px" }}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'block';
+                }}
               />
+              <div style={{ display: 'none', padding: '20px', textAlign: 'center' }}>
+                📄 No se pudo cargar el comprobante
+              </div>
             </div>
           </div>
         )}
