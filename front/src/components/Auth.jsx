@@ -1,32 +1,39 @@
-import { useState } from 'react';
-import Login from './Login';
-import Register from './Register';
+import React, { useState } from "react";
+import Login from "./Login";
+import Register from "./Register";
+
+const API_URL = "http://127.0.0.1:8000";
 
 const Auth = ({ onAuthenticated }) => {
   const [isLogin, setIsLogin] = useState(true);
-  const [users, setUsers] = useState([
-    // Usuario de ejemplo para el prototipo
-    { email: 'admin@consorcio.com', password: 'admin123', nombre: 'Admin', apellido: 'Consorcio' }
-  ]);
 
-  const handleLogin = (email) => {
-    // En un prototipo, cualquier email válido puede iniciar sesión
-    console.log('Usuario logueado:', email);
+  const handleLogin = async (email, password) => {
+    const response = await fetch(`${API_URL}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    if (!response.ok) {
+      alert("Error en login");
+      return;
+    }
+    const data = await response.json();
+    console.log("Usuario logueado:", data);
     onAuthenticated(email);
   };
 
-  const handleRegister = (email, userData) => {
-    // Guardar nuevo usuario en el estado local
-    const newUser = {
-      email,
-      ...userData,
-      id: Date.now() // ID simple para el prototipo
-    };
-    
-    setUsers(prev => [...prev, newUser]);
-    console.log('Nuevo usuario registrado:', newUser);
-    
-    // Automáticamente loguear después del registro
+  const handleRegister = async (email, password, nombre, apellido) => {
+    const response = await fetch(`${API_URL}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, nombre, apellido }),
+    });
+    if (!response.ok) {
+      alert("Error al registrar");
+      return;
+    }
+    const data = await response.json();
+    console.log("Nuevo usuario:", data);
     onAuthenticated(email);
   };
 
@@ -50,8 +57,6 @@ const Auth = ({ onAuthenticated }) => {
           onSwitchToLogin={() => setIsLogin(true)}
         />
       )}
-      
-  
     </div>
   );
 };

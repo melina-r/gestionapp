@@ -8,10 +8,7 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // En un prototipo, aceptamos cualquier dato
-    if (formData.email && formData.password) {
-      onLogin(formData.email);
-    }
+    onLogin(formData.email, formData.password);
   };
 
   const handleChange = (e) => {
@@ -35,7 +32,7 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
       <h2 style={{ textAlign: 'center', marginBottom: '35px', color: '#333', fontSize: '28px' }}>
         Iniciar Sesión
       </h2>
-      
+
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: '25px' }}>
           <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#555' }}>
@@ -63,7 +60,7 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
             onBlur={(e) => e.target.style.borderColor = '#e1e5e9'}
           />
         </div>
-        
+
         <div style={{ marginBottom: '30px' }}>
           <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#555' }}>
             Contraseña:
@@ -90,7 +87,7 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
             onBlur={(e) => e.target.style.borderColor = '#e1e5e9'}
           />
         </div>
-        
+
         <button
           type="submit"
           style={{
@@ -112,7 +109,7 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
           Iniciar Sesión
         </button>
       </form>
-      
+
       <div style={{ textAlign: 'center' }}>
         <p style={{ margin: '15px 0', color: '#666', fontSize: '16px' }}>¿No tienes cuenta?</p>
         <button
