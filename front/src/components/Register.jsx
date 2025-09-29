@@ -13,19 +13,25 @@ const Register = ({ onRegister, onSwitchToLogin }) => {
   });
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    // Validación básica
-    if (formData.password !== formData.confirmPassword) {
-      alert('Las contraseñas no coinciden');
-      return;
-    }
-    
-    // En un prototipo, aceptamos cualquier dato
-    if (formData.email && formData.password && formData.nombre) {
-      onRegister(formData.email, formData);
-    }
-  };
+  e.preventDefault();
+
+  if (formData.password !== formData.confirmPassword) {
+    alert('Las contraseñas no coinciden');
+    return;
+  }
+
+  if (formData.email && formData.password && formData.nombre && formData.apellido) {
+    // Enviar los campos correctos
+    onRegister(
+      formData.email,
+      formData.password,
+      formData.nombre,
+      formData.apellido
+    );
+  } else {
+    alert("Completa todos los campos obligatorios");
+  }
+};
 
   const handleChange = (e) => {
     const { name, value } = e.target;
