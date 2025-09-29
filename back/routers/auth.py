@@ -21,6 +21,8 @@ fake_users_db = {}
 
 @router.post("/register")
 def register(user: User):
+    if user.email in fake_users_db:
+        raise HTTPException(status_code=400, detail="El email ingresado ya se encuentra en uso")
     fake_users_db[user.email] = user
     return {"msg": "Usuario creado con éxito"}
 
