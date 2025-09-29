@@ -14,7 +14,8 @@ const Auth = ({ onAuthenticated }) => {
       body: JSON.stringify({ email, password }),
     });
     if (!response.ok) {
-      alert("Error en login");
+      const errData = await response.json();
+      alert(errData.detail || "Error en login");
       return;
     }
     const data = await response.json();
@@ -29,8 +30,9 @@ const Auth = ({ onAuthenticated }) => {
       body: JSON.stringify({ email, password, nombre, apellido }),
     });
     if (!response.ok) {
-      alert("Error al registrar");
-      return;
+        const errData = await response.json();
+        alert(errData.detail || "Error al registrar");
+        return;
     }
     const data = await response.json();
     console.log("Nuevo usuario:", data);
