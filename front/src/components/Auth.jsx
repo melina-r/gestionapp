@@ -11,15 +11,26 @@ const Auth = ({ onAuthenticated }) => {
     const response = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ mail: email, password }),
     });
     if (!response.ok) {
       const errData = await response.json();
-      alert(errData.detail || "Error en login");
+      const errorMsg = typeof errData.detail === 'string' ? errData.detail : JSON.stringify(errData.detail);
+      alert(errorMsg || "Error en login");
       return;
     }
     const data = await response.json();
     console.log("Usuario logueado:", data);
+
+    // Store token and user info in localStorage
+    localStorage.setItem('access_token', data.access_token);
+    localStorage.setItem('user', JSON.stringify({
+      id: data.user_id,
+      nombre: data.nombre,
+      apellido: data.apellido,
+      mail: email
+    }));
+
     onAuthenticated(email);
   };
 
@@ -27,16 +38,27 @@ const Auth = ({ onAuthenticated }) => {
     const response = await fetch(`${API_URL}/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, nombre, apellido }),
+      body: JSON.stringify({ mail: email, password, nombre, apellido }),
     });
     if (!response.ok) {
         const errData = await response.json();
-        alert(errData.detail || "Error al registrar");
+        const errorMsg = typeof errData.detail === 'string' ? errData.detail : JSON.stringify(errData.detail);
+        alert(errorMsg || "Error al registrar");
         return;
     }
     const data = await response.json();
     console.log("Nuevo usuario:", data);
-    onAuthenticated(email);
+
+    // Store user info in localStorage (registration doesn't return token, so login after)
+    localStorage.setItem('user', JSON.stringify({
+      id: data.id,
+      nombre: data.nombre,
+      apellido: data.apellido,
+      mail: data.mail
+    }));
+
+    // Now login to get the token
+    await handleLogin(email, password);
   };
 
   return (
