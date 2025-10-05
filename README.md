@@ -1,48 +1,74 @@
 # Gestión App - Prototype
 
-A management application prototype built with React and Vite, featuring login functionality and consortium management capabilities.
+A management application prototype built with React (frontend), FastAPI (backend), and PostgreSQL (database), fully containerized with Docker.
 
 ## Getting Started
 
-### 1. Install Dependencies
+### Prerequisites
+
+- Docker
+- Docker Compose
+
+### Building the Project
+
+To build all Docker images for the project:
 
 ```bash
-npm install
+docker-compose build
 ```
 
-### 2. Database Setup
+This will build:
+- **Backend**: FastAPI application (Python 3.11)
+- **Frontend**: React + Vite application (Node 20)
 
-The project uses PostgreSQL with Docker for data storage.
+### Running the Project
 
-#### Start the Database
+To start the entire application stack:
+
+```bash
+docker-compose up
+```
+
+Or to run in detached mode (background):
 
 ```bash
 docker-compose up -d
 ```
 
-This will start:
-- **PostgreSQL** on port `5432`
-- **Adminer** on port `8080` for database management
+This will start all services:
+- **PostgreSQL** on port `5432` - Database server
+- **Backend** on port `8000` - FastAPI REST API
+- **Frontend** on port `5173` - React application
+- **Adminer** on port `8080` - Database management interface
 
-#### Database Connection Details
+### Accessing the Application
 
-- **Host**: `localhost`
+- **Frontend**: `http://localhost:5173`
+- **Backend API**: `http://localhost:8000`
+- **API Docs**: `http://localhost:8000/docs`
+- **Adminer**: `http://localhost:8080`
+
+### Database Connection Details
+
+- **Host**: `postgres` (inside Docker network) or `localhost` (from host machine)
 - **Port**: `5432`
 - **Database**: `gestionapp`
 - **Username**: `gestionuser`
 - **Password**: `gestionpass`
 
-#### Access Adminer
+### Stopping the Project
 
-Visit `http://localhost:8080` to access the database management interface.
-
-### 3. Run the Development Server
+To stop all services:
 
 ```bash
-npm run dev
+docker-compose down
 ```
 
-The application will start and be available at `http://localhost:5173`.
+To stop and remove volumes (including database data):
+
+```bash
+docker-compose down -v
+```
 
 ## React + Vite
 
