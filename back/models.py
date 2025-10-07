@@ -44,6 +44,11 @@ class UsuarioCreate(SQLModel):
     password: str
 
 
+class UsuarioLogin(SQLModel):
+    mail: str
+    password: str
+
+
 class UsuarioPublic(SQLModel):
     id: int
     nombre: str
