@@ -60,13 +60,21 @@ export default function RegisterExpenseModal({ onRegister }) {
 
     setIsLoading(true);
     try {
+      // Get authenticated user from localStorage
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const usuario_id = user.id;
+
+      if (!usuario_id) {
+        throw new Error("Usuario no autenticado");
+      }
+
       const expenseData = {
         titulo: nombre.trim(),
         descripcion: descripcion?.trim() || null,
         valor: parseFloat(monto),
         fecha: new Date().toISOString().slice(0, 10),
-        autor: "Usuario Actual",
-        usuario_id: 1,
+        autor: `${user.nombre} ${user.apellido}`,
+        usuario_id: usuario_id,
         comprobante: filePath
       };
 
