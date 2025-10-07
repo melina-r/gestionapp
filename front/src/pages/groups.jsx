@@ -1,4 +1,4 @@
-import { useState, useImperativeHandle, forwardRef } from 'react';
+import { useState, useImperativeHandle, forwardRef, useEffect } from 'react';
 import GroupDashboard from './groupDashboard';
 import '../styles/groups.css';
 
@@ -19,14 +19,40 @@ function Dialog({ open, title, message, onClose }) {
 }
 
 const Groups = forwardRef((props, ref) => {
-  const [groups, setGroups] = useState([
-    { id: 1, name: "Consorcio", members: 15, balance: 2340.80 }
-  ]);
+  const [groups, setGroups] = useState([]);
 
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [dlgSuccess, setDlgSuccess] = useState({ open: false, name: '' });
+
+  useEffect(() => {
+    fetchGroups();
+  }, []);
+
+  const fetchGroups = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:8000/groups/', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        // Transformar los datos de la API al formato que usa el frontend
+        const transformedGroups = data.map(group => ({
+          id: group.id,
+          name: group.nombre,
+          members: 0, // TODO: obtener el número real de miembros
+          balance: 0  // TODO: calcular el balance real
+        }));
+        setGroups(transformedGroups);
+      }
+    } catch (error) {
+      console.error('Error al cargar grupos:', error);
+    }
+  };
 
   const handleSelectGroup = (group) => {
     setSelectedGroup(group);
@@ -36,19 +62,35 @@ const Groups = forwardRef((props, ref) => {
     setSelectedGroup(null);
   };
 
-  const handleCreateGroup = () => {
+  const handleCreateGroup = async () => {
     if (newGroupName.trim()) {
       const name = newGroupName.trim();
-      const newGroup = {
-        id: Date.now(),
-        name,
-        members: 1,
-        balance: 0
-      };
-      setGroups([...groups, newGroup]);
-      setNewGroupName('');
-      setShowCreateModal(false);
-      setDlgSuccess({ open: true, name });
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:8000/groups/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            nombre: name,
+            direccion: null,
+            descripcion: null
+          })
+        });
+
+        if (response.ok) {
+          await fetchGroups(); // Recargar la lista de grupos
+          setNewGroupName('');
+          setShowCreateModal(false);
+          setDlgSuccess({ open: true, name });
+        } else {
+          console.error('Error al crear grupo');
+        }
+      } catch (error) {
+        console.error('Error al crear grupo:', error);
+      }
     }
   };
 

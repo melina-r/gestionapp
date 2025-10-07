@@ -1,6 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlmodel import Session, select
 from typing import List
+import secrets
+import string
 
 from models import Grupo, GrupoCreate, GrupoPublic, Usuario, UsuarioGrupo
 from database import get_session
@@ -12,17 +14,41 @@ router = APIRouter(
 )
 
 
+def generate_group_code(length: int = 8) -> str:
+    """Generate a random alphanumeric code for group invitation"""
+    characters = string.ascii_uppercase + string.digits
+    return ''.join(secrets.choice(characters) for _ in range(length))
+
+
 @router.post("/", response_model=GrupoPublic)
 def create_group(
     group: GrupoCreate,
     session: Session = Depends(get_session),
     current_user: Usuario = Depends(get_current_user)
 ):
-    """Create a new group (requires authentication)"""
-    db_group = Grupo.model_validate(group)
+    """Create a new group and automatically add the creator as a member (requires authentication)"""
+    # Generate a unique code
+    while True:
+        codigo = generate_group_code()
+        # Check if code already exists
+        statement = select(Grupo).where(Grupo.codigo == codigo)
+        existing = session.exec(statement).first()
+        if not existing:
+            break
+
+    # Create group with the generated code
+    group_data = group.model_dump()
+    group_data["codigo"] = codigo
+    db_group = Grupo(**group_data)
     session.add(db_group)
     session.commit()
     session.refresh(db_group)
+
+    # Automatically add the creator to the group
+    usuario_grupo = UsuarioGrupo(usuario_id=current_user.id, grupo_id=db_group.id)
+    session.add(usuario_grupo)
+    session.commit()
+
     return db_group
 
 
@@ -31,8 +57,16 @@ def list_groups(
     session: Session = Depends(get_session),
     current_user: Usuario = Depends(get_current_user)
 ):
-    """List all groups (requires authentication)"""
-    statement = select(Grupo)
+    """List groups where the current user is a member (requires authentication)"""
+    # Get group IDs where the user is a member
+    statement = select(UsuarioGrupo.grupo_id).where(UsuarioGrupo.usuario_id == current_user.id)
+    grupo_ids = session.exec(statement).all()
+
+    if not grupo_ids:
+        return []
+
+    # Get the actual groups
+    statement = select(Grupo).where(Grupo.id.in_(grupo_ids))
     groups = session.exec(statement).all()
     return groups
 
@@ -123,3 +157,38 @@ def get_group_users(
     statement = select(UsuarioGrupo.usuario_id).where(UsuarioGrupo.grupo_id == group_id)
     user_ids = session.exec(statement).all()
     return user_ids
+
+
+@router.post("/join/{codigo}")
+def join_group_by_code(
+    codigo: str,
+    session: Session = Depends(get_session),
+    current_user: Usuario = Depends(get_current_user)
+):
+    """Join a group using its invitation code (requires authentication)"""
+    # Find group by code
+    statement = select(Grupo).where(Grupo.codigo == codigo.upper())
+    group = session.exec(statement).first()
+
+    if not group:
+        raise HTTPException(status_code=404, detail="Código de grupo inválido")
+
+    # Check if user is already in the group
+    statement = select(UsuarioGrupo).where(
+        UsuarioGrupo.usuario_id == current_user.id,
+        UsuarioGrupo.grupo_id == group.id
+    )
+    existing = session.exec(statement).first()
+
+    if existing:
+        raise HTTPException(status_code=400, detail="Ya eres miembro de este grupo")
+
+    # Add user to group
+    usuario_grupo = UsuarioGrupo(usuario_id=current_user.id, grupo_id=group.id)
+    session.add(usuario_grupo)
+    session.commit()
+
+    return {
+        "message": f"Te has unido exitosamente al grupo '{group.nombre}'",
+        "group": GrupoPublic.model_validate(group)
+    }

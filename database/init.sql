@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
 CREATE TABLE IF NOT EXISTS grupos (
     id SERIAL PRIMARY KEY,
     nombre VARCHAR(255) NOT NULL,
+    codigo VARCHAR(10) UNIQUE NOT NULL,
     direccion TEXT,
     descripcion TEXT,
     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -61,6 +62,7 @@ ALTER TABLE gastos
 -- Crear índices para mejor rendimiento
 CREATE INDEX IF NOT EXISTS idx_usuarios_mail ON usuarios(mail);
 CREATE INDEX IF NOT EXISTS idx_grupos_nombre ON grupos(nombre);
+CREATE INDEX IF NOT EXISTS idx_grupos_codigo ON grupos(codigo);
 CREATE INDEX IF NOT EXISTS idx_usuario_grupos_usuario_id ON usuario_grupos(usuario_id);
 CREATE INDEX IF NOT EXISTS idx_usuario_grupos_grupo_id ON usuario_grupos(grupo_id);
 CREATE INDEX IF NOT EXISTS idx_gastos_fecha ON gastos(fecha);

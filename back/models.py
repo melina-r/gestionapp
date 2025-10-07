@@ -33,6 +33,7 @@ class Grupo(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
     nombre: str = Field(max_length=255, index=True)
+    codigo: str = Field(max_length=10, unique=True, index=True)
     direccion: Optional[str] = None
     descripcion: Optional[str] = None
     creado_en: Optional[datetime] = Field(default_factory=datetime.utcnow)
@@ -121,6 +122,7 @@ class GrupoCreate(SQLModel):
 class GrupoPublic(SQLModel):
     id: int
     nombre: str
+    codigo: str
     direccion: Optional[str]
     descripcion: Optional[str]
     creado_en: datetime
