@@ -15,7 +15,7 @@ function App() {
   useEffect(() => {
     const checkAuth = () => {
       const user = getUser();
-      const token = localStorage.getItem('access_token');
+      const token = sessionStorage.getItem('access_token');
 
       if (user && token) {
         setIsAuthenticated(true);

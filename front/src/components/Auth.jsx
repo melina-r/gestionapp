@@ -22,9 +22,9 @@ const Auth = ({ onAuthenticated }) => {
     const data = await response.json();
     console.log("Usuario logueado:", data);
 
-    // Store token and user info in localStorage
-    localStorage.setItem('access_token', data.access_token);
-    localStorage.setItem('user', JSON.stringify({
+    // Store token and user info in sessionStorage
+    sessionStorage.setItem('access_token', data.access_token);
+    sessionStorage.setItem('user', JSON.stringify({
       id: data.user_id,
       nombre: data.nombre,
       apellido: data.apellido,
@@ -49,8 +49,8 @@ const Auth = ({ onAuthenticated }) => {
     const data = await response.json();
     console.log("Nuevo usuario:", data);
 
-    // Store user info in localStorage (registration doesn't return token, so login after)
-    localStorage.setItem('user', JSON.stringify({
+    // Store user info in sessionStorage (registration doesn't return token, so login after)
+    sessionStorage.setItem('user', JSON.stringify({
       id: data.id,
       nombre: data.nombre,
       apellido: data.apellido,
