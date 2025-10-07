@@ -3,8 +3,8 @@ from sqlmodel import Session, select
 from typing import List
 from datetime import date
 
-from ..database import get_session
-from ..models import Gasto, GastoCreate, GastoUpdate, GastoPublic
+from database import get_session
+from models import Gasto, GastoCreate, GastoUpdate, GastoPublic
 
 router = APIRouter(prefix="/expenses", tags=["expenses"])
 
