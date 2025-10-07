@@ -41,6 +41,7 @@ class Grupo(SQLModel, table=True):
 
     # Relationships
     usuarios: List["Usuario"] = Relationship(back_populates="grupos", link_model=UsuarioGrupo)
+    gastos: List["Gasto"] = Relationship(back_populates="grupo")
 
 
 class Gasto(SQLModel, table=True):
@@ -51,14 +52,15 @@ class Gasto(SQLModel, table=True):
     descripcion: Optional[str] = None
     valor: float
     fecha: date = Field(index=True)
-    autor: str = Field(max_length=100, index=True)
     usuario_id: int = Field(foreign_key="usuarios.id", index=True)
+    grupo_id: int = Field(foreign_key="grupos.id", index=True)
     comprobante: Optional[str] = Field(default=None, max_length=500)
     creado_en: Optional[datetime] = Field(default_factory=datetime.utcnow)
     actualizado_en: Optional[datetime] = Field(default_factory=datetime.utcnow)
 
     # Relationships
     usuario: Optional[Usuario] = Relationship(back_populates="gastos")
+    grupo: Optional[Grupo] = Relationship(back_populates="gastos")
 
 
 # DTOs for API endpoints - these inherit from the base models
@@ -87,8 +89,7 @@ class GastoCreate(SQLModel):
     descripcion: Optional[str] = None
     valor: float
     fecha: date
-    autor: str
-    usuario_id: int
+    grupo_id: int
     comprobante: Optional[str] = None
 
 
@@ -97,7 +98,6 @@ class GastoUpdate(SQLModel):
     descripcion: Optional[str] = None
     valor: Optional[float] = None
     fecha: Optional[date] = None
-    autor: Optional[str] = None
     comprobante: Optional[str] = None
 
 
@@ -107,8 +107,8 @@ class GastoPublic(SQLModel):
     descripcion: Optional[str]
     valor: float
     fecha: date
-    autor: str
     usuario_id: int
+    grupo_id: int
     comprobante: Optional[str]
     creado_en: datetime
 
@@ -126,3 +126,4 @@ class GrupoPublic(SQLModel):
     direccion: Optional[str]
     descripcion: Optional[str]
     creado_en: datetime
+    member_count: Optional[int] = 0

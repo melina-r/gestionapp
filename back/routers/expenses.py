@@ -17,7 +17,10 @@ def create_expense(
     current_user: Usuario = Depends(get_current_user)
 ):
     """Create a new expense (requires authentication)"""
-    db_expense = Gasto.model_validate(expense)
+    # Create expense with current user as author (usuario_id)
+    expense_data = expense.model_dump()
+    expense_data["usuario_id"] = current_user.id
+    db_expense = Gasto(**expense_data)
     session.add(db_expense)
     session.commit()
     session.refresh(db_expense)
@@ -109,15 +112,17 @@ def get_expenses_by_group(
     current_user: Usuario = Depends(get_current_user)
 ):
     """Get all expenses for a specific group (requires authentication)"""
-    # Get all users in the group
-    statement = select(UsuarioGrupo.usuario_id).where(UsuarioGrupo.grupo_id == group_id)
-    user_ids = session.exec(statement).all()
+    # Verify user is member of the group
+    statement = select(UsuarioGrupo).where(
+        UsuarioGrupo.usuario_id == current_user.id,
+        UsuarioGrupo.grupo_id == group_id
+    )
+    membership = session.exec(statement).first()
+    if not membership:
+        raise HTTPException(status_code=403, detail="No perteneces a este grupo")
 
-    if not user_ids:
-        return []
-
-    # Get all expenses for those users
-    statement = select(Gasto).where(Gasto.usuario_id.in_(user_ids)).order_by(Gasto.fecha.desc())
+    # Get all expenses for this group
+    statement = select(Gasto).where(Gasto.grupo_id == group_id).order_by(Gasto.fecha.desc())
     expenses = session.exec(statement).all()
     return expenses
 

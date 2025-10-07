@@ -23,8 +23,11 @@ const Groups = forwardRef((props, ref) => {
 
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
+  const [joinCode, setJoinCode] = useState('');
   const [dlgSuccess, setDlgSuccess] = useState({ open: false, name: '' });
+  const [dlgError, setDlgError] = useState({ open: false, message: '' });
 
   useEffect(() => {
     fetchGroups();
@@ -32,7 +35,7 @@ const Groups = forwardRef((props, ref) => {
 
   const fetchGroups = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('access_token');
       const response = await fetch('http://localhost:8000/groups/', {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -44,7 +47,7 @@ const Groups = forwardRef((props, ref) => {
         const transformedGroups = data.map(group => ({
           id: group.id,
           name: group.nombre,
-          members: 0, // TODO: obtener el número real de miembros
+          members: group.member_count || 0,
           balance: 0  // TODO: calcular el balance real
         }));
         setGroups(transformedGroups);
@@ -66,7 +69,7 @@ const Groups = forwardRef((props, ref) => {
     if (newGroupName.trim()) {
       const name = newGroupName.trim();
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('access_token');
         const response = await fetch('http://localhost:8000/groups/', {
           method: 'POST',
           headers: {
@@ -94,6 +97,35 @@ const Groups = forwardRef((props, ref) => {
     }
   };
 
+  const handleJoinGroup = async () => {
+    if (joinCode.trim()) {
+      const code = joinCode.trim().toUpperCase();
+      try {
+        const token = localStorage.getItem('access_token');
+        const response = await fetch(`http://localhost:8000/groups/join/${code}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          await fetchGroups(); // Recargar la lista de grupos
+          setJoinCode('');
+          setShowJoinModal(false);
+          setDlgSuccess({ open: true, name: data.group.nombre });
+        } else {
+          const error = await response.json();
+          setDlgError({ open: true, message: error.detail || 'Error al unirse al grupo' });
+        }
+      } catch (error) {
+        console.error('Error al unirse al grupo:', error);
+        setDlgError({ open: true, message: 'Error de conexión' });
+      }
+    }
+  };
+
   useImperativeHandle(ref, () => ({
     goHome: () => {
       setSelectedGroup(null);
@@ -109,12 +141,20 @@ const Groups = forwardRef((props, ref) => {
       <div className="groups-container">
         <div className="groups-header">
           <h1>Mis Grupos</h1>
-          <button
-              className="create-group-btn"
-              onClick={() => setShowCreateModal(true)}
-          >
-            + Crear Grupo
-          </button>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button
+                className="create-group-btn"
+                onClick={() => setShowJoinModal(true)}
+            >
+              Unirse a Grupo
+            </button>
+            <button
+                className="create-group-btn"
+                onClick={() => setShowCreateModal(true)}
+            >
+              + Crear Grupo
+            </button>
+          </div>
         </div>
 
         <div className="groups-grid">
@@ -161,11 +201,54 @@ const Groups = forwardRef((props, ref) => {
             </div>
         )}
 
+        {showJoinModal && (
+            <div className="modal-overlay" onClick={() => setShowJoinModal(false)}>
+              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <h2>Unirse a un Grupo</h2>
+                <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>
+                  Ingresa el código de invitación del grupo
+                </p>
+                <input
+                    type="text"
+                    placeholder="Código de invitación"
+                    value={joinCode}
+                    onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                    onKeyPress={(e) => e.key === 'Enter' && handleJoinGroup()}
+                    autoFocus
+                    maxLength={10}
+                    style={{ textTransform: 'uppercase' }}
+                />
+                <div className="modal-actions">
+                  <button
+                      className="cancel-btn"
+                      onClick={() => setShowJoinModal(false)}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                      className="create-btn"
+                      onClick={handleJoinGroup}
+                      disabled={!joinCode.trim()}
+                  >
+                    Unirse
+                  </button>
+                </div>
+              </div>
+            </div>
+        )}
+
         <Dialog
             open={dlgSuccess.open}
-            title="Grupo creado"
-            message={`El grupo "${dlgSuccess.name}" se creó correctamente.`}
+            title={dlgSuccess.name ? "¡Éxito!" : "Grupo creado"}
+            message={dlgSuccess.name ? `Te has unido exitosamente al grupo "${dlgSuccess.name}".` : "El grupo se creó correctamente."}
             onClose={() => setDlgSuccess({ open: false, name: '' })}
+        />
+
+        <Dialog
+            open={dlgError.open}
+            title="Error"
+            message={dlgError.message}
+            onClose={() => setDlgError({ open: false, message: '' })}
         />
       </div>
   );

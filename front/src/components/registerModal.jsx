@@ -66,8 +66,7 @@ export default function RegisterExpenseModal({ onRegister }) {
         descripcion: descripcion?.trim() || null,
         valor: parseFloat(monto),
         fecha: new Date().toISOString().slice(0, 10),
-        autor: "Usuario Actual",
-        usuario_id: 1,
+        grupo_id: 1, // TODO: obtener del grupo actual
         comprobante: filePath
       };
 

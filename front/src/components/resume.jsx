@@ -175,11 +175,11 @@ export default function Resume() {
                             <tr key={`gasto-${gasto.id}`}>
                                 <td>{gasto.fecha}</td>
                                 <td>{gasto.titulo}</td>
-                                <td>{gasto.autor}</td>
+                                <td>Usuario #{gasto.usuario_id}</td>
                                 <td style={{ fontWeight: 'bold', color: '#2196F3' }}>
-                                    ${parseFloat(gasto.valor).toLocaleString('es-ES', { 
-                                        minimumFractionDigits: 2, 
-                                        maximumFractionDigits: 2 
+                                    ${parseFloat(gasto.valor).toLocaleString('es-ES', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
                                     })}
                                 </td>
                             </tr>

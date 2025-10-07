@@ -42,15 +42,17 @@ const BalanceCards = () => {
     let total = 0;
     let propios = 0;
     let gastosOtros = 0;
-    
+
+    // Obtener el ID del usuario actual desde localStorage
+    const currentUserId = parseInt(localStorage.getItem('userId'));
+
     if (gastos.length > 0) {
         gastos.forEach(gasto => {
             const valor = parseFloat(gasto.valor) || 0;
             total += valor;
-            
-            // Asumiendo que "Juan Perez" es el usuario actual
-            // En el futuro esto debería venir del contexto de autenticación
-            if (gasto.autor === 'Juan Perez' || gasto.autor === 'Juan Pérez') {
+
+            // Comparar por usuario_id en lugar de autor
+            if (gasto.usuario_id === currentUserId) {
                 propios += valor;
             } else {
                 gastosOtros += valor;

@@ -32,15 +32,15 @@ CREATE TABLE IF NOT EXISTS usuario_grupos (
     UNIQUE(usuario_id, grupo_id)
 );
 
--- Crear tabla gastos con clave foránea usuario_id
+-- Crear tabla gastos con claves foráneas usuario_id y grupo_id
 CREATE TABLE IF NOT EXISTS gastos (
     id SERIAL PRIMARY KEY,
     titulo VARCHAR(255) NOT NULL,
     descripcion TEXT,
     valor DECIMAL(10,2) NOT NULL,
     fecha DATE NOT NULL,
-    autor VARCHAR(100) NOT NULL,
     usuario_id INTEGER NOT NULL,
+    grupo_id INTEGER NOT NULL,
     comprobante VARCHAR(500),
     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -59,6 +59,10 @@ ALTER TABLE gastos
     ADD CONSTRAINT fk_gastos_usuario_id
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE;
 
+ALTER TABLE gastos
+    ADD CONSTRAINT fk_gastos_grupo_id
+    FOREIGN KEY (grupo_id) REFERENCES grupos(id) ON DELETE CASCADE;
+
 -- Crear índices para mejor rendimiento
 CREATE INDEX IF NOT EXISTS idx_usuarios_mail ON usuarios(mail);
 CREATE INDEX IF NOT EXISTS idx_grupos_nombre ON grupos(nombre);
@@ -66,8 +70,8 @@ CREATE INDEX IF NOT EXISTS idx_grupos_codigo ON grupos(codigo);
 CREATE INDEX IF NOT EXISTS idx_usuario_grupos_usuario_id ON usuario_grupos(usuario_id);
 CREATE INDEX IF NOT EXISTS idx_usuario_grupos_grupo_id ON usuario_grupos(grupo_id);
 CREATE INDEX IF NOT EXISTS idx_gastos_fecha ON gastos(fecha);
-CREATE INDEX IF NOT EXISTS idx_gastos_autor ON gastos(autor);
 CREATE INDEX IF NOT EXISTS idx_gastos_usuario_id ON gastos(usuario_id);
+CREATE INDEX IF NOT EXISTS idx_gastos_grupo_id ON gastos(grupo_id);
 CREATE INDEX IF NOT EXISTS idx_gastos_valor ON gastos(valor);
 
 -- Crear función para actualizar timestamp actualizado_en

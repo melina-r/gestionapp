@@ -68,7 +68,20 @@ def list_groups(
     # Get the actual groups
     statement = select(Grupo).where(Grupo.id.in_(grupo_ids))
     groups = session.exec(statement).all()
-    return groups
+
+    # Add member count to each group
+    result = []
+    for group in groups:
+        # Count members for this group
+        count_statement = select(UsuarioGrupo).where(UsuarioGrupo.grupo_id == group.id)
+        member_count = len(session.exec(count_statement).all())
+
+        # Create response with member count
+        group_data = GrupoPublic.model_validate(group)
+        group_data.member_count = member_count
+        result.append(group_data)
+
+    return result
 
 
 @router.get("/{group_id}", response_model=GrupoPublic)
@@ -81,7 +94,16 @@ def get_group(
     group = session.get(Grupo, group_id)
     if not group:
         raise HTTPException(status_code=404, detail="Grupo no encontrado")
-    return group
+
+    # Count members for this group
+    count_statement = select(UsuarioGrupo).where(UsuarioGrupo.grupo_id == group.id)
+    member_count = len(session.exec(count_statement).all())
+
+    # Create response with member count
+    group_data = GrupoPublic.model_validate(group)
+    group_data.member_count = member_count
+
+    return group_data
 
 
 @router.post("/{group_id}/users/{user_id}")

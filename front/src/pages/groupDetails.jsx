@@ -67,8 +67,8 @@ const GroupDetails = ({ group }) => {
       .catch(() => setLoading(false));
   }, []);
 
-  // Obtener propietarios únicos
-  const propietarios = [...new Set(data.map((g) => g.autor))];
+  // Obtener usuarios únicos
+  const usuarios = [...new Set(data.map((g) => g.usuario_id))];
 
   // Filtrar datos
   function formatDateToInput(fechaStr) {
@@ -85,12 +85,12 @@ const GroupDetails = ({ group }) => {
 
   const filteredData = data.filter((gasto) => {
     const matchTitulo = gasto.titulo && gasto.titulo.toLowerCase().includes(search.toLowerCase());
-    const matchPropietario = propietario ? gasto.autor === propietario : true;
+    const matchUsuario = propietario ? gasto.usuario_id === parseInt(propietario) : true;
     let matchFecha = true;
     if (fecha) {
       matchFecha = formatDateToInput(gasto.fecha) === formatDateToString(fecha);
     }
-    return matchTitulo && matchPropietario && matchFecha;
+    return matchTitulo && matchUsuario && matchFecha;
   }).sort((a, b) => new Date(b.fecha) - new Date(a.fecha)); // Ordenar por fecha descendente
 
   return (
@@ -111,9 +111,9 @@ const GroupDetails = ({ group }) => {
               onChange={(e) => setPropietario(e.target.value)}
               style={{ marginRight: "8px" }}
             >
-              <option value="">Todos los propietarios</option>
-              {propietarios.map((p) => (
-                <option key={p} value={p}>{p}</option>
+              <option value="">Todos los usuarios</option>
+              {usuarios.map((userId) => (
+                <option key={userId} value={userId}>Usuario #{userId}</option>
               ))}
             </select>
             {/* Date Picker visual */}
@@ -149,7 +149,7 @@ const GroupDetails = ({ group }) => {
                 <th>Fecha</th>
                 <th>Título</th>
                 <th>Descripción</th>
-                <th>Propietario</th>
+                <th>Usuario</th>
                 <th>Monto</th>
                 <th>Comprobante</th>
               </tr>
@@ -167,7 +167,7 @@ const GroupDetails = ({ group }) => {
                     <td>
                       <span className="tag">{gasto.descripcion}</span>
                     </td>
-                    <td>{gasto.autor}</td>
+                    <td>Usuario #{gasto.usuario_id}</td>
                     <td>${gasto.valor}</td>
                     <td>
                       {gasto.comprobante ? (

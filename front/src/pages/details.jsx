@@ -69,7 +69,8 @@ const details = () => {
         descripcion: expense.descripcion || '',
         valor: expense.valor,
         fecha: expense.fecha, // Ya viene en formato YYYY-MM-DD
-        autor: expense.autor,
+        usuario_id: expense.usuario_id,
+        grupo_id: expense.grupo_id,
         comprobante: expense.comprobante
       }));
       
@@ -89,12 +90,12 @@ const details = () => {
     fetchExpenses();
   }, []);
 
-  // Obtener propietarios únicos (mejorado)
-  const propietarios = [...new Set(
+  // Obtener usuarios únicos (mejorado)
+  const usuarios = [...new Set(
     data
-      .map((g) => g.autor)
-      .filter(autor => autor && autor.trim()) // Filtrar vacíos y espacios
-  )].sort(); // Ordenar alfabéticamente
+      .map((g) => g.usuario_id)
+      .filter(usuario_id => usuario_id) // Filtrar nulos
+  )].sort(); // Ordenar
 
   // Funciones de formato de fecha
   function formatDateToInput(fechaStr) {
@@ -113,12 +114,12 @@ const details = () => {
   // Filtrar datos
   const filteredData = data.filter((gasto) => {
     const matchTitulo = gasto.titulo && gasto.titulo.toLowerCase().includes(search.toLowerCase());
-    const matchPropietario = propietario ? gasto.autor === propietario : true;
+    const matchUsuario = propietario ? gasto.usuario_id === parseInt(propietario) : true;
     let matchFecha = true;
     if (fecha) {
       matchFecha = formatDateToInput(gasto.fecha) === formatDateToString(fecha);
     }
-    return matchTitulo && matchPropietario && matchFecha;
+    return matchTitulo && matchUsuario && matchFecha;
   }).sort((a, b) => new Date(b.fecha) - new Date(a.fecha)); // Ordenar por fecha descendente
 
   // Función para refrescar los datos
@@ -144,10 +145,10 @@ const details = () => {
               onChange={(e) => setPropietario(e.target.value)}
               style={{ marginRight: "8px" }}
             >
-              <option value="">Todos los propietarios</option>
-              {propietarios.map((p, index) => (
-                <option key={`propietario-${index}-${p}`} value={p}>
-                  {p}
+              <option value="">Todos los usuarios</option>
+              {usuarios.map((userId, index) => (
+                <option key={`usuario-${index}-${userId}`} value={userId}>
+                  Usuario #{userId}
                 </option>
               ))}
             </select>
@@ -218,7 +219,7 @@ const details = () => {
                 <th>Fecha</th>
                 <th>Título</th>
                 <th>Descripción</th>
-                <th>Propietario</th>
+                <th>Usuario</th>
                 <th>Monto</th>
                 <th>Comprobante</th>
               </tr>
@@ -238,7 +239,7 @@ const details = () => {
                     <td>
                       <span className="tag">{gasto.descripcion}</span>
                     </td>
-                    <td>{gasto.autor}</td>
+                    <td>Usuario #{gasto.usuario_id}</td>
                     <td>${gasto.valor}</td>
                     <td>
                       {gasto.comprobante ? (
