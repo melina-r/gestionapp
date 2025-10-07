@@ -11,7 +11,7 @@ const Auth = ({ onAuthenticated }) => {
     const response = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ mail: email, password }),
     });
     if (!response.ok) {
       const errData = await response.json();
@@ -27,7 +27,7 @@ const Auth = ({ onAuthenticated }) => {
     const response = await fetch(`${API_URL}/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, nombre, apellido }),
+      body: JSON.stringify({ mail: email, password, nombre, apellido }),
     });
     if (!response.ok) {
         const errData = await response.json();
