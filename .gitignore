@@ -26,3 +26,6 @@ back/*.pyc
 back/.env
 back/venv/
 back/env/
+
+ echo "__pycache__/" >> .gitignore
+ echo "*.pyc" >> .gitignore
