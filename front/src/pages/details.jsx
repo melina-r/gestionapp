@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import "../styles/details.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { authenticatedFetch } from '../utils/api';
 
 const details = () => {
   const [search, setSearch] = useState("");
@@ -48,12 +49,12 @@ const details = () => {
   const fetchExpenses = async () => {
     setLoading(true);
     setError("");
-    
+
     try {
       console.log('🔄 Obteniendo gastos desde la API...');
-      
-      const response = await fetch('http://localhost:8000/expenses/');
-      
+
+      const response = await authenticatedFetch('/expenses/');
+
       if (!response.ok) {
         throw new Error(`Error ${response.status}: ${response.statusText}`);
       }

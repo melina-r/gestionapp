@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import AddMemberModal from './addMemberModal';
 import '../styles/resume.css';
+import { authenticatedFetch } from '../utils/api';
 
 const usuarios = [
     {
@@ -30,12 +31,12 @@ export default function Resume() {
     const fetchExpenses = async () => {
         setLoading(true);
         setError("");
-        
+
         try {
             console.log('🔄 Obteniendo gastos recientes desde la API...');
-            
-            const response = await fetch('http://localhost:8000/expenses/');
-            
+
+            const response = await authenticatedFetch('/expenses/');
+
             if (!response.ok) {
                 throw new Error(`Error ${response.status}: ${response.statusText}`);
             }

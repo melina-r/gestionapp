@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import "../styles/registerModal.css";
+import { authenticatedFetch } from '../utils/api';
 
 function Dialog({ open, type = "info", title, message, onClose, onPrimary, primaryText = "OK" }) {
   if (!open) return null;
@@ -70,9 +71,8 @@ export default function RegisterExpenseModal({ onRegister }) {
         comprobante: filePath
       };
 
-      const res = await fetch("http://localhost:8000/expenses/", {
+      const res = await authenticatedFetch("/expenses/", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(expenseData)
       });
 

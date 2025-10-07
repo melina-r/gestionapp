@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import '../styles/balance_cards.css';
+import { authenticatedFetch } from '../utils/api';
 
 const BalanceCards = () => {
     const [gastos, setGastos] = useState([]);
@@ -10,12 +11,12 @@ const BalanceCards = () => {
     const fetchExpenses = async () => {
         setLoading(true);
         setError("");
-        
+
         try {
             console.log('🔄 Obteniendo gastos para balance desde la API...');
-            
-            const response = await fetch('http://localhost:8000/expenses/');
-            
+
+            const response = await authenticatedFetch('/expenses/');
+
             if (!response.ok) {
                 throw new Error(`Error ${response.status}: ${response.statusText}`);
             }

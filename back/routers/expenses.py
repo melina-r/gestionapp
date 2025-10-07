@@ -3,7 +3,7 @@ from sqlmodel import Session, select
 from datetime import date
 from typing import List
 
-from models import Gasto, GastoCreate, GastoUpdate, GastoPublic, Usuario
+from models import Gasto, GastoCreate, GastoUpdate, GastoPublic, Usuario, UsuarioGrupo
 from database import get_session
 from auth_utils import get_current_user
 
@@ -109,9 +109,15 @@ def get_expenses_by_group(
     current_user: Usuario = Depends(get_current_user)
 ):
     """Get all expenses for a specific group (requires authentication)"""
-    # TODO: Implement proper group filtering when usuario_grupos relationship is ready
-    # For now, return all expenses
-    statement = select(Gasto).order_by(Gasto.fecha.desc())
+    # Get all users in the group
+    statement = select(UsuarioGrupo.usuario_id).where(UsuarioGrupo.grupo_id == group_id)
+    user_ids = session.exec(statement).all()
+
+    if not user_ids:
+        return []
+
+    # Get all expenses for those users
+    statement = select(Gasto).where(Gasto.usuario_id.in_(user_ids)).order_by(Gasto.fecha.desc())
     expenses = session.exec(statement).all()
     return expenses
 
