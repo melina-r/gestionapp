@@ -1,26 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import AddMemberModal from './addMemberModal';
+import { getGroupMembers } from '../utils/groupsUtils';
 import '../styles/resume.css';
 
-const usuarios = [
-    {
-        nombre: 'Juan Pérez',
-        correo: 'juan.perez@email.com',
-        avatar: 'https://ui-avatars.com/api/?name=Juan+Perez',
-    },
-    {
-        nombre: 'Ana Gómez',
-        correo: 'ana.gomez@email.com',
-        avatar: 'https://ui-avatars.com/api/?name=Ana+Gomez',
-    },
-    {
-        nombre: 'Carlos Ruiz',
-        correo: 'carlos.ruiz@email.com',
-        avatar: 'https://ui-avatars.com/api/?name=Carlos+Ruiz',
-    },
-];
-
-export default function Resume() {
+export default function Resume({ groupId }) {  // 👈 necesita el ID del grupo actual
+    const [usuarios, setUsuarios] = useState([]);
     const [gastos, setGastos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -30,26 +14,26 @@ export default function Resume() {
     const fetchExpenses = async () => {
         setLoading(true);
         setError("");
-        
+
         try {
             console.log('🔄 Obteniendo gastos recientes desde la API...');
-            
+
             const response = await fetch('http://localhost:8000/expenses/');
-            
+
             if (!response.ok) {
                 throw new Error(`Error ${response.status}: ${response.statusText}`);
             }
-            
+
             const expenses = await response.json();
             console.log('✅ Gastos recientes obtenidos:', expenses);
-            
+
             // Tomar solo los 5 más recientes, ordenados por fecha
             const recentExpenses = expenses
                 .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
                 .slice(0, 5);
-            
+
             setGastos(recentExpenses);
-            
+
         } catch (err) {
             console.error('❌ Error al obtener gastos recientes:', err);
             setError(`Error al cargar los gastos: ${err.message}`);
@@ -59,8 +43,19 @@ export default function Resume() {
     };
 
     useEffect(() => {
+        if (!groupId) return;
         fetchExpenses();
-    }, []);
+        const fetchMembers = async () => {
+        try {
+            const miembros = await getGroupMembers(groupId);
+            setUsuarios(miembros);
+        } catch (err) {
+            console.error('❌ Error al obtener los miembros:', err);
+            setError(`Error al cargar los miembros: ${err.message}`);
+        }
+    };
+        fetchMembers();
+    }, [groupId]);
 
     const handleAddMember = async (email) => {
         console.log('Enviando invitación a:', email);
@@ -87,11 +82,11 @@ export default function Resume() {
     return (
         <div className="resume-container">
             {/* Encabezado con título y botón de actualizar */}
-            <div className="resume-header" style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center', 
-                marginBottom: '16px' 
+            <div className="resume-header" style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '16px'
             }}>
                 <h2 style={{ margin: 0 }}>Gastos Recientes</h2>
                 <button
@@ -123,10 +118,10 @@ export default function Resume() {
                     border: '1px solid #ffcdd2'
                 }}>
                     {error}
-                    <button 
-                        onClick={handleRefresh} 
-                        style={{ 
-                            marginLeft: '12px', 
+                    <button
+                        onClick={handleRefresh}
+                        style={{
+                            marginLeft: '12px',
                             padding: '4px 8px',
                             backgroundColor: '#c62828',
                             color: 'white',
@@ -176,9 +171,9 @@ export default function Resume() {
                                 <td>{gasto.titulo}</td>
                                 <td>{gasto.autor}</td>
                                 <td style={{ fontWeight: 'bold', color: '#2196F3' }}>
-                                    ${parseFloat(gasto.valor).toLocaleString('es-ES', { 
-                                        minimumFractionDigits: 2, 
-                                        maximumFractionDigits: 2 
+                                    ${parseFloat(gasto.valor).toLocaleString('es-ES', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
                                     })}
                                 </td>
                             </tr>
@@ -217,7 +212,7 @@ export default function Resume() {
                     {usuarios.map((usuario, idx) => (
                         <li key={`usuario-${idx}-${usuario.correo}`} className="resume-user-item">
                             <img
-                                src={usuario.avatar}
+                                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(usuario.nombre)}`}
                                 alt={usuario.nombre}
                                 className="resume-user-avatar"
                             />

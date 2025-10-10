@@ -38,3 +38,19 @@ export async function createGroup(name) {
 
   return await res.json();
 }
+
+export async function getGroupMembers(groupId) {
+    try {
+        const response = await fetch(`http://localhost:8000/groups/${groupId}/members`);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Error ${response.status}: ${errorText || response.statusText}`);
+        }
+
+        return await response.json(); // lista de usuarios del grupo
+    } catch (err) {
+        console.error("❌ Error al obtener miembros:", err);
+        throw err;
+    }
+}
