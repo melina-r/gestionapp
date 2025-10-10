@@ -64,3 +64,30 @@ def create_group(data: GroupCreate, session: Session = Depends(get_session)):
         "name": nuevo_grupo.nombre,
         "members": 1
     }
+
+@router.get("/{group_id}/members", response_model=list[dict])
+def get_group_members(group_id: int, session: Session = Depends(get_session)):
+    """
+    Devuelve los miembros del grupo especificado.
+    """
+    group = session.get(Grupo, group_id)
+    if not group:
+        raise HTTPException(status_code=404, detail="Grupo no encontrado")
+
+    # Obtener miembros desde la tabla de relación
+    miembros = (
+        session.query(Usuario)
+        .join(UsuarioGrupo, Usuario.id == UsuarioGrupo.usuario_id)
+        .filter(UsuarioGrupo.grupo_id == group_id)
+        .all()
+    )
+
+    return [
+        {
+            "id": u.id,
+            "nombre": u.nombre,
+            "correo": u.mail,
+            "avatar": f"https://ui-avatars.com/api/?name={u.nombre.replace(' ', '+')}"
+        }
+        for u in miembros
+    ]
