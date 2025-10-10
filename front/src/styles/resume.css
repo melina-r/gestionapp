@@ -1,144 +1,113 @@
-/* Contenedor principal (tabla + usuarios) */
 .resume-container {
-  display: grid;
-  grid-template-columns: 2fr 1fr; /* tabla ocupa más espacio que usuarios */
-  gap: 16px;
-  margin-bottom: 24px;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
-/* Asegura que hijos (tabla y usuarios) tengan mismo alto visual */
-.resume-container > * {
-  align-self: start;
+.tables-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-bottom: 24px;
 }
 
+.table-section {
+    background: white;
+    border-radius: 8px;
+}
 
-/* Contenedor de la tabla */
+.table-section h3 {
+    margin: 0;
+    padding: 16px;
+    border-bottom: 1px solid #eee;
+    font-size: 1.1em;
+    color: #333;
+}
+
 .resume-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 24px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  overflow: hidden; /* para que los bordes redondeados se apliquen */
+    width: 100%;
+    border-collapse: collapse;
 }
 
-/* Encabezados */
 .resume-table th {
-  text-align: left;
-  font-size: 14px;
-  font-weight: 600;
-  color: #374151; /* gris oscuro */
-  background: #f9fafb; /* gris muy claro */
-  padding: 12px 16px;
-  border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+    padding: 12px 16px;
+    font-weight: 500;
+    color: #666;
+    border-bottom: 1px solid #eee;
 }
 
-/* Celdas */
-.resume-table td {
-  font-size: 14px;
-  color: #111827; /* casi negro */
-  padding: 12px 16px;
-  border-bottom: 1px solid #e5e7eb;
-  text-align: start;
+.expandable-row {
+    cursor: pointer;
 }
 
-/* Última fila sin borde inferior */
-.resume-table tr:last-child td {
-  border-bottom: none;
+.expandable-row:hover {
+    background-color: #f8f9fa;
 }
 
-/* Hover en filas */
-.resume-table tbody tr:hover {
-  background-color: #f3f4f6; /* gris claro */
+.expandable-row td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #eee;
+    color: gray;
 }
 
-/* Contenedor general */
-.resume-users {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 16px;
+.expand-icon {
+    display: inline-block;
+    margin-right: 8px;
+    color: #666;
+    font-size: 0.8em;
 }
 
-/* Header con título y botón */
-.users-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
+.amount {
+    text-align: right;
+    font-family: monospace;
 }
 
-/* Título */
-.resume-users h3 {
-  font-size: 16px;
-  font-weight: 600;
-  color: #111827; /* gris casi negro */
-  margin: 0;
+.nested-table {
+    width: 100%;
+    background: #f8f9fa;
 }
 
-/* Botón agregar miembro */
-.add-member-btn {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 8px 12px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
+.nested-table td {
+    padding: 8px 16px;
+    border: none;
 }
 
-.add-member-btn:hover {
-  background-color: #0056b3;
+.expanded-content {
+    background: #f8f9fa;
 }
 
-.add-member-btn:active {
-  transform: translateY(1px);
+.resume-footer {
+    text-align: center;
+    margin-top: 24px;
 }
 
-/* Lista */
-.resume-users-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.refresh-button {
+    padding: 8px 16px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: blue;
 }
 
-/* Cada item */
-.resume-user-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 0;
-  border-bottom: 1px solid #e5e7eb;
+.refresh-button:hover {
+    background: #dbebfa;
+    color: #0000ff;
 }
 
-/* Último sin borde */
-.resume-user-item:last-child {
-  border-bottom: none;
+.refresh-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
-/* Avatar */
-.resume-user-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-/* Nombre */
-.resume-user-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: #111827;
-}
-
-/* Email */
-.resume-user-email {
-  font-size: 13px;
-  color: #6b7280; /* gris medio */
+.error-message {
+    text-align: center;
+    color: #dc3545;
+    margin: 16px 0;
+    padding: 12px;
+    background: #fff;
+    border: 1px solid #dc3545;
+    border-radius: 4px;
 }

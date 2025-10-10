@@ -2,239 +2,208 @@ import React, { useEffect, useState } from 'react';
 import AddMemberModal from './addMemberModal';
 import '../styles/resume.css';
 
-const usuarios = [
-    {
-        nombre: 'Juan Pérez',
-        correo: 'juan.perez@email.com',
-        avatar: 'https://ui-avatars.com/api/?name=Juan+Perez',
-    },
-    {
-        nombre: 'Ana Gómez',
-        correo: 'ana.gomez@email.com',
-        avatar: 'https://ui-avatars.com/api/?name=Ana+Gomez',
-    },
-    {
-        nombre: 'Carlos Ruiz',
-        correo: 'carlos.ruiz@email.com',
-        avatar: 'https://ui-avatars.com/api/?name=Carlos+Ruiz',
-    },
-];
-
 export default function Resume() {
-    const [gastos, setGastos] = useState([]);
+    const [debts, setDebts] = useState([]);
+    const [credits, setCredits] = useState([]);
+    const [expenses, setExpenses] = useState({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [expandedDebts, setExpandedDebts] = useState({});
+    const [expandedCredits, setExpandedCredits] = useState({});
+    const [users, setUsers] = useState({});
 
-    // Función para obtener gastos desde la API
-    const fetchExpenses = async () => {
+    // Mock current user - replace with actual user authentication
+    const currentUserId = 1;
+
+    const fetchUserData = async () => {
         setLoading(true);
         setError("");
         
         try {
-            console.log('🔄 Obteniendo gastos recientes desde la API...');
+            // Fetch users first
+            const usersData = {};
+            const uniqueUserIds = new Set();
             
-            const response = await fetch('http://localhost:8000/expenses/');
-            
-            if (!response.ok) {
-                throw new Error(`Error ${response.status}: ${response.statusText}`);
+            // Get debts and credits data
+            const [debtsResponse, creditsResponse] = await Promise.all([
+                fetch(`http://localhost:8000/expenses/debts/${currentUserId}`),
+                fetch(`http://localhost:8000/expenses/credits/${currentUserId}`)
+            ]);
+
+            const debtsData = await debtsResponse.json();
+            const creditsData = await creditsResponse.json();
+
+            // Collect all user IDs
+            debtsData.forEach(debt => uniqueUserIds.add(debt.acreedor_id));
+            creditsData.forEach(credit => uniqueUserIds.add(credit.deudor_id));
+
+            // Fetch user details
+            for (const userId of uniqueUserIds) {
+                const userResponse = await fetch(`http://localhost:8000/users/${userId}`);
+                if (userResponse.ok) {
+                    const userData = await userResponse.json();
+                    usersData[userId] = userData;
+                }
             }
+
+            // Filter pending debts
+            const pendingDebts = debtsData.filter(debt => debt.estado === 0);
+
+            // Group debts and credits by user
+            const groupedDebts = groupByUser(pendingDebts, 'acreedor_id');
+            const groupedCredits = groupByUser(creditsData, 'deudor_id');
+
+            // Fetch all related expenses
+            const expenseIds = new Set([
+                ...pendingDebts.map(d => d.gasto_id),
+                ...creditsData.map(c => c.gasto_id)
+            ]);
             
-            const expenses = await response.json();
-            console.log('✅ Gastos recientes obtenidos:', expenses);
-            
-            // Tomar solo los 5 más recientes, ordenados por fecha
-            const recentExpenses = expenses
-                .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
-                .slice(0, 5);
-            
-            setGastos(recentExpenses);
-            
+            const expensesData = {};
+            for (const id of expenseIds) {
+                const response = await fetch(`http://localhost:8000/expenses/${id}`);
+                if (response.ok) {
+                    const expense = await response.json();
+                    expensesData[id] = expense;
+                }
+            }
+
+            setDebts(groupedDebts);
+            setCredits(groupedCredits);
+            setExpenses(expensesData);
+            setUsers(usersData);
+
         } catch (err) {
-            console.error('❌ Error al obtener gastos recientes:', err);
-            setError(`Error al cargar los gastos: ${err.message}`);
+            console.error('Error fetching data:', err);
+            setError(`Error al cargar los datos: ${err.message}`);
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchExpenses();
+        fetchUserData();
     }, []);
 
-    const handleAddMember = async (email) => {
-        console.log('Enviando invitación a:', email);
-
-        // Simular envío de email (aquí implementarías la lógica real)
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                // Simular éxito o fallo
-                if (Math.random() > 0.1) { // 90% de éxito
-                    alert(`Invitación enviada exitosamente a ${email}`);
-                    resolve();
-                } else {
-                    reject(new Error('Error simulado en el envío'));
-                }
-            }, 1500);
-        });
+    const groupByUser = (items, userIdField) => {
+        return items.reduce((acc, item) => {
+            const userId = item[userIdField];
+            if (!acc[userId]) {
+                acc[userId] = {
+                    items: [],
+                    total: 0
+                };
+            }
+            acc[userId].items.push(item);
+            acc[userId].total += item.monto;
+            return acc;
+        }, {});
     };
 
-    // Función para refrescar los datos
-    const handleRefresh = () => {
-        fetchExpenses();
+    const toggleExpansion = (userId, type) => {
+        if (type === 'debt') {
+            setExpandedDebts(prev => ({
+                ...prev,
+                [userId]: !prev[userId]
+            }));
+        } else {
+            setExpandedCredits(prev => ({
+                ...prev,
+                [userId]: !prev[userId]
+            }));
+        }
+    };
+
+    // Helper function to render expandable rows
+    const renderExpandableTable = (data, type) => {
+        const expanded = type === 'debt' ? expandedDebts : expandedCredits;
+        const toggleFunction = (userId) => toggleExpansion(userId, type);
+
+        return (
+            <table className="resume-table">
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Monto Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {Object.entries(data).map(([userId, userData]) => (
+                        <React.Fragment key={userId}>
+                            <tr 
+                                onClick={() => toggleFunction(userId)}
+                                className="expandable-row"
+                            >
+                                <td>
+                                    <span className="expand-icon">{expanded[userId] ? '▼' : '▶'}</span>
+                                    {users[userId]?.nombre || 'Usuario desconocido'}
+                                </td>
+                                <td className="amount">
+                                    ${userData.total.toFixed(2)}
+                                </td>
+                            </tr>
+                            {expanded[userId] && (
+                                <tr className="expanded-content">
+                                    <td colSpan="2">
+                                        <table className="nested-table">
+                                            <tbody>
+                                                {userData.items.map((item) => (
+                                                    <tr key={item.gasto_id}>
+                                                        <td>{expenses[item.gasto_id]?.titulo || 'Cargando...'}</td>
+                                                        <td className="amount">${item.monto.toFixed(2)}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                </tr>
+                            )}
+                        </React.Fragment>
+                    ))}
+                </tbody>
+            </table>
+        );
     };
 
     return (
         <div className="resume-container">
-            {/* Encabezado con título y botón de actualizar */}
-            <div className="resume-header" style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center', 
-                marginBottom: '16px' 
-            }}>
-                <h2 style={{ margin: 0 }}>Gastos Recientes</h2>
+            <div className="tables-grid">
+                <div className="table-section">
+                    <h3>Mis Deudas</h3>
+                    {loading ? (
+                        <p>Cargando deudas...</p>
+                    ) : (
+                        renderExpandableTable(debts, 'debt')
+                    )}
+                </div>
+
+                <div className="table-section">
+                    <h3>Mis Créditos</h3>
+                    {loading ? (
+                        <p>Cargando créditos...</p>
+                    ) : (
+                        renderExpandableTable(credits, 'credit')
+                    )}
+                </div>
+            </div>
+
+            <div className="resume-footer">
                 <button
-                    onClick={handleRefresh}
+                    onClick={fetchUserData}
                     disabled={loading}
-                    style={{
-                        padding: '8px 12px',
-                        backgroundColor: '#4CAF50',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: loading ? 'not-allowed' : 'pointer',
-                        fontSize: '0.9em'
-                    }}
-                    title="Actualizar gastos"
+                    className="refresh-button"
                 >
-                    {loading ? "🔄" : "↻"} Actualizar
+                    {loading ? "Actualizando..." : "Actualizar"}
                 </button>
             </div>
 
-            {/* Mostrar error si existe */}
             {error && (
-                <div style={{
-                    background: '#ffebee',
-                    color: '#c62828',
-                    padding: '12px',
-                    borderRadius: '4px',
-                    margin: '16px 0',
-                    border: '1px solid #ffcdd2'
-                }}>
+                <div className="error-message">
                     {error}
-                    <button 
-                        onClick={handleRefresh} 
-                        style={{ 
-                            marginLeft: '12px', 
-                            padding: '4px 8px',
-                            backgroundColor: '#c62828',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        Reintentar
-                    </button>
+                    <button onClick={fetchUserData}>Reintentar</button>
                 </div>
             )}
-
-            {/* Tabla de gastos */}
-            <table className="resume-table">
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Nombre</th>
-                        <th>Registrado por</th>
-                        <th>Monto</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {loading ? (
-                        <tr>
-                            <td colSpan={4} style={{ textAlign: 'center', padding: '20px' }}>
-                                🔄 Cargando gastos recientes...
-                            </td>
-                        </tr>
-                    ) : error && gastos.length === 0 ? (
-                        <tr>
-                            <td colSpan={4} style={{ textAlign: 'center', padding: '20px' }}>
-                                ❌ Error al cargar datos
-                            </td>
-                        </tr>
-                    ) : gastos.length === 0 ? (
-                        <tr>
-                            <td colSpan={4} style={{ textAlign: 'center', padding: '20px' }}>
-                                📭 No hay gastos registrados aún
-                            </td>
-                        </tr>
-                    ) : (
-                        gastos.map((gasto) => (
-                            <tr key={`gasto-${gasto.id}`}>
-                                <td>{gasto.fecha}</td>
-                                <td>{gasto.titulo}</td>
-                                <td>{gasto.autor}</td>
-                                <td style={{ fontWeight: 'bold', color: '#2196F3' }}>
-                                    ${parseFloat(gasto.valor).toLocaleString('es-ES', { 
-                                        minimumFractionDigits: 2, 
-                                        maximumFractionDigits: 2 
-                                    })}
-                                </td>
-                            </tr>
-                        ))
-                    )}
-                </tbody>
-            </table>
-
-            {/* Información adicional */}
-            {!loading && !error && gastos.length > 0 && (
-                <div style={{
-                    marginTop: '8px',
-                    padding: '8px',
-                    background: '#f5f5f5',
-                    borderRadius: '4px',
-                    fontSize: '0.85em',
-                    color: '#666',
-                    textAlign: 'center'
-                }}>
-                    📊 Mostrando los {gastos.length} gastos más recientes
-                </div>
-            )}
-
-            {/* Lista de usuarios */}
-            <div className="resume-users">
-                <div className="users-header">
-                    <h3>Usuarios</h3>
-                    <button
-                        className="add-member-btn"
-                        onClick={() => setIsModalOpen(true)}
-                    >
-                        + Agregar Miembro
-                    </button>
-                </div>
-                <ul className="resume-users-list">
-                    {usuarios.map((usuario, idx) => (
-                        <li key={`usuario-${idx}-${usuario.correo}`} className="resume-user-item">
-                            <img
-                                src={usuario.avatar}
-                                alt={usuario.nombre}
-                                className="resume-user-avatar"
-                            />
-                            <div>
-                                <div className="resume-user-name">{usuario.nombre}</div>
-                                <div className="resume-user-email">{usuario.correo}</div>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-            </div>
-
-            <AddMemberModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onSubmit={handleAddMember}
-            />
         </div>
     );
 }

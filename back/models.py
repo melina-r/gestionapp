@@ -17,20 +17,6 @@ class Usuario(SQLModel, table=True):
     gastos: List["Gasto"] = Relationship(back_populates="usuario")
     grupos: List["UsuarioGrupo"] = Relationship(back_populates="usuario")  # sin link_model
 
-class Grupo(SQLModel, table=True):
-    __tablename__ = "grupos"
-
-    id: Optional[int] = Field(default=None, primary_key=True)
-    nombre: str = Field(max_length=255)
-    direccion: Optional[str] = None
-    descripcion: Optional[str] = None
-    creado_en: Optional[datetime] = Field(default_factory=datetime.now)
-    actualizado_en: Optional[datetime] = Field(default_factory=datetime.now)
-
-    # Relationships
-    gastos: List["Gasto"] = Relationship(back_populates="grupo")
-
-
 class Gasto(SQLModel, table=True):
     __tablename__ = "gastos"
 
@@ -47,7 +33,7 @@ class Gasto(SQLModel, table=True):
     actualizado_en: Optional[datetime] = Field(default_factory=datetime.now)
 
     usuario: Optional[Usuario] = Relationship(back_populates="gastos")
-    grupo: Optional["Grupo"] = Relationship()
+    grupo: Optional["Grupo"] = Relationship(back_populates="gastos")  # Add back_populates
 
 class Deuda(SQLModel, table=True):
     __tablename__ = "deudas"
@@ -79,23 +65,12 @@ class Grupo(SQLModel, table=True):
     nombre: str = Field(max_length=255)
     direccion: Optional[str] = None
     descripcion: Optional[str] = None
-    creado_en: Optional[datetime] = Field(default_factory=datetime.utcnow)
-    actualizado_en: Optional[datetime] = Field(default_factory=datetime.utcnow)
+    creado_en: Optional[datetime] = Field(default_factory=datetime.now)
+    actualizado_en: Optional[datetime] = Field(default_factory=datetime.now)
 
+    # Relationships
+    gastos: List["Gasto"] = Relationship(back_populates="grupo")
     miembros: List["UsuarioGrupo"] = Relationship(back_populates="grupo")
-
-
-class UsuarioGrupo(SQLModel, table=True):
-    __tablename__ = "usuario_grupos"
-
-    id: Optional[int] = Field(default=None, primary_key=True)
-    usuario_id: int = Field(foreign_key="usuarios.id")
-    grupo_id: int = Field(foreign_key="grupos.id")
-    creado_en: Optional[datetime] = Field(default_factory=datetime.utcnow)
-
-    usuario: Optional[Usuario] = Relationship(back_populates="grupos")
-    grupo: Optional[Grupo] = Relationship(back_populates="miembros")
-
 
 # DTOs para API
 class UsuarioCreate(SQLModel):
@@ -164,7 +139,7 @@ class GrupoPublic(SQLModel):
     nombre: str
     direccion: Optional[str]
     descripcion: Optional[str]
-    creado_en: datetime
+    creado_en: datetime  # Add missing field
 
 class UsuarioGrupo(SQLModel, table=True):
     __tablename__ = "usuario_grupos"
@@ -172,11 +147,11 @@ class UsuarioGrupo(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     usuario_id: int = Field(foreign_key="usuarios.id", index=True)
     grupo_id: int = Field(foreign_key="grupos.id", index=True)
-    creado_en: Optional[datetime] = Field(default_factory=datetime.now)
+    creado_en: Optional[datetime] = Field(default_factory=datetime.utcnow)  # Change to utcnow
 
     # Relationships
-    usuario: Optional["Usuario"] = Relationship()
-    grupo: Optional["Grupo"] = Relationship()
+    usuario: Optional["Usuario"] = Relationship(back_populates="grupos")  # Add back_populates
+    grupo: Optional["Grupo"] = Relationship(back_populates="miembros")  # Add back_populates
 
 # Actualizar referencias para forward refs
 Usuario.update_forward_refs()

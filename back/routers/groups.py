@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 from typing import List
-from models import Grupo, Usuario, UsuarioGrupo, GroupCreate
+from models import Grupo, Usuario, UsuarioGrupo, GrupoCreate  
 from database import get_session  # tu función para obtener Session
 
 router = APIRouter(prefix="/groups", tags=["groups"])
@@ -42,7 +42,7 @@ def get_user_groups(email: str, session: Session = Depends(get_session)):
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=dict)
-def create_group(data: GroupCreate, session: Session = Depends(get_session)):
+def create_group(data: GrupoCreate, session: Session = Depends(get_session)):
     """
     Crea un nuevo grupo y lo asocia al usuario.
     """
