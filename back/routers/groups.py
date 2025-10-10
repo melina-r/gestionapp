@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 from typing import List
 from models import Grupo, Usuario, UsuarioGrupo, GroupCreate
-from database import get_session  # tu función para obtener Session
+from database import get_session
 
 router = APIRouter(prefix="/groups", tags=["groups"])
 
