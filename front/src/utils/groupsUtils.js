@@ -1,15 +1,19 @@
 const API_URL = "http://127.0.0.1:8000";
 
 function getCurrentUser() {
-  const email = sessionStorage.getItem("userEmail");
-  if (!email) throw new Error("Usuario no autenticado");
-  return email;
+  const userStr = sessionStorage.getItem("user");
+  if (!userStr) throw new Error("Usuario no autenticado");
+
+  const user = JSON.parse(userStr);
+  if (!user.mail) throw new Error("Email del usuario no encontrado");
+
+  return user.mail;
 }
 
 export async function getGroups() {
   const email = getCurrentUser();
 
-  const res = await fetch(`${API_URL}/groups?user=${encodeURIComponent(email)}`);
+  const res = await fetch(`${API_URL}/groups?email=${encodeURIComponent(email)}`);
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.detail || "Error al obtener los grupos");
@@ -24,7 +28,7 @@ export async function createGroup(name) {
   const res = await fetch(`${API_URL}/groups`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, user: email }),
+    body: JSON.stringify({ name, email }), // ahora coincide con el backend
   });
 
   if (!res.ok) {
