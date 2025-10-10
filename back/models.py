@@ -14,8 +14,8 @@ class Usuario(SQLModel, table=True):
     creado_en: Optional[datetime] = Field(default_factory=datetime.utcnow)
     actualizado_en: Optional[datetime] = Field(default_factory=datetime.utcnow)
 
-    # Relationships
     gastos: List["Gasto"] = Relationship(back_populates="usuario")
+    grupos: List["UsuarioGrupo"] = Relationship(back_populates="usuario")  # sin link_model
 
 class Grupo(SQLModel, table=True):
     __tablename__ = "grupos"
@@ -54,7 +54,7 @@ class Deuda(SQLModel, table=True):
     __tablename__ = "deudas"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    gasto_id: int = Field(foreign_key="gastos.id", index=True)  
+    gasto_id: int = Field(foreign_key="gastos.id", index=True)
     deudor_id: int = Field(foreign_key="usuarios.id", index=True)
     acreedor_id: int = Field(foreign_key="usuarios.id", index=True)
     estado: int = Field(default=0)  # 0: pendiente, 1: pagado, etc
@@ -101,7 +101,7 @@ class GastoCreate(SQLModel):
     fecha: date
     autor: str
     usuario_id: int
-    grupo_id: int 
+    grupo_id: int
     comprobante: Optional[str] = None
 
 
