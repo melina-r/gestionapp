@@ -14,8 +14,8 @@ class Usuario(SQLModel, table=True):
     creado_en: Optional[datetime] = Field(default_factory=datetime.utcnow)
     actualizado_en: Optional[datetime] = Field(default_factory=datetime.utcnow)
 
-    # Relationships
     gastos: List["Gasto"] = Relationship(back_populates="usuario")
+    grupos: List["UsuarioGrupo"] = Relationship(back_populates="usuario")  # sin link_model
 
 class Grupo(SQLModel, table=True):
     __tablename__ = "grupos"
@@ -46,7 +46,6 @@ class Gasto(SQLModel, table=True):
     creado_en: Optional[datetime] = Field(default_factory=datetime.now)
     actualizado_en: Optional[datetime] = Field(default_factory=datetime.now)
 
-    # Relationships
     usuario: Optional[Usuario] = Relationship(back_populates="gastos")
     grupo: Optional["Grupo"] = Relationship()
 
@@ -73,7 +72,32 @@ class Deuda(SQLModel, table=True):
     grupo: Optional["Grupo"] = Relationship()
 
 
-# DTOs for API endpoints
+class Grupo(SQLModel, table=True):
+    __tablename__ = "grupos"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    nombre: str = Field(max_length=255)
+    direccion: Optional[str] = None
+    descripcion: Optional[str] = None
+    creado_en: Optional[datetime] = Field(default_factory=datetime.utcnow)
+    actualizado_en: Optional[datetime] = Field(default_factory=datetime.utcnow)
+
+    miembros: List["UsuarioGrupo"] = Relationship(back_populates="grupo")
+
+
+class UsuarioGrupo(SQLModel, table=True):
+    __tablename__ = "usuario_grupos"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    usuario_id: int = Field(foreign_key="usuarios.id")
+    grupo_id: int = Field(foreign_key="grupos.id")
+    creado_en: Optional[datetime] = Field(default_factory=datetime.utcnow)
+
+    usuario: Optional[Usuario] = Relationship(back_populates="grupos")
+    grupo: Optional[Grupo] = Relationship(back_populates="miembros")
+
+
+# DTOs para API
 class UsuarioCreate(SQLModel):
     nombre: str
     apellido: str
@@ -153,3 +177,8 @@ class UsuarioGrupo(SQLModel, table=True):
     # Relationships
     usuario: Optional["Usuario"] = Relationship()
     grupo: Optional["Grupo"] = Relationship()
+
+# Actualizar referencias para forward refs
+Usuario.update_forward_refs()
+Grupo.update_forward_refs()
+UsuarioGrupo.update_forward_refs()
