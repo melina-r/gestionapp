@@ -28,3 +28,4 @@ back/**/*.pyc
 back/.env
 back/venv/
 back/env/
+back/new_env/

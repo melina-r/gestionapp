@@ -13,17 +13,11 @@ app = FastAPI()
 # Configurar CORS para múltiples puertos comunes
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",      # Create React App default
-        "http://localhost:5173",      # Vite default
-        "http://127.0.0.1:3000",      # Localhost alternativo
-        "http://127.0.0.1:5173",      # Vite localhost alternativo
-        "http://localhost:8080",      # Otros frameworks
-        "http://localhost:4200"       # Angular default
-    ],
+    allow_origins=["*"],  # More permissive during development
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 app.include_router(users.router)

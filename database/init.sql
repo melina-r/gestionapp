@@ -40,7 +40,26 @@ CREATE TABLE IF NOT EXISTS gastos (
     fecha DATE NOT NULL,
     autor VARCHAR(100) NOT NULL,
     usuario_id INTEGER NOT NULL,
+    grupo_id INTEGER REFERENCES grupos(id),
     comprobante VARCHAR(500),
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Add foreign key constraint
+ALTER TABLE gastos
+    ADD CONSTRAINT fk_gastos_grupo_id
+    FOREIGN KEY (grupo_id) REFERENCES grupos(id);
+
+-- Crear tabla deudas
+CREATE TABLE IF NOT EXISTS deudas (
+    id SERIAL PRIMARY KEY,
+    deudor_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    acreedor_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    gasto_id INTEGER NOT NULL REFERENCES gastos(id) ON DELETE CASCADE,
+    estado SMALLINT NOT NULL DEFAULT 0,
+    grupo_id INTEGER NOT NULL REFERENCES grupos(id) ON DELETE CASCADE,
+    monto DECIMAL(10,2) NOT NULL,
     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -58,6 +77,22 @@ ALTER TABLE gastos
     ADD CONSTRAINT fk_gastos_usuario_id
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE;
 
+ALTER TABLE deudas
+    ADD CONSTRAINT fk_deudas_deudor_id
+    FOREIGN KEY (deudor_id) REFERENCES usuarios(id) ON DELETE CASCADE;
+
+ALTER TABLE deudas
+    ADD CONSTRAINT fk_deudas_acreedor_id
+    FOREIGN KEY (acreedor_id) REFERENCES usuarios(id) ON DELETE CASCADE;
+
+ALTER TABLE deudas
+    ADD CONSTRAINT fk_deudas_grupo_id
+    FOREIGN KEY (grupo_id) REFERENCES grupos(id) ON DELETE CASCADE;
+
+ALTER TABLE deudas
+    ADD CONSTRAINT fk_deudas_gasto_id
+    FOREIGN KEY (gasto_id) REFERENCES gastos(id) ON DELETE CASCADE;
+
 -- Crear índices para mejor rendimiento
 CREATE INDEX IF NOT EXISTS idx_usuarios_mail ON usuarios(mail);
 CREATE INDEX IF NOT EXISTS idx_grupos_nombre ON grupos(nombre);
@@ -67,6 +102,7 @@ CREATE INDEX IF NOT EXISTS idx_gastos_fecha ON gastos(fecha);
 CREATE INDEX IF NOT EXISTS idx_gastos_autor ON gastos(autor);
 CREATE INDEX IF NOT EXISTS idx_gastos_usuario_id ON gastos(usuario_id);
 CREATE INDEX IF NOT EXISTS idx_gastos_valor ON gastos(valor);
+CREATE INDEX IF NOT EXISTS idx_gastos_grupo_id ON gastos(grupo_id);
 
 -- Crear función para actualizar timestamp actualizado_en
 CREATE OR REPLACE FUNCTION actualizar_timestamp()
