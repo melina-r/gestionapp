@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import AddMemberModal from './addMemberModal';
+import { getGroupMembers } from '../utils/groupsUtils';
 import '../styles/resume.css';
 
 export default function Resume() {

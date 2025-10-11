@@ -32,7 +32,7 @@ const GroupDashboard = ({ group, onBack }) => {
       {selectedTab === 0 && (
         <div className="dashboard-tab">
           <BalanceCards />
-          <Resume />
+          <Resume groupId={group.id} />
           <Graphics />
         </div>
       )}
