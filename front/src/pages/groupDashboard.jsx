@@ -20,7 +20,7 @@ const GroupDashboard = ({ group, onBack }) => {
         <h1 className="group-title">{group.name}</h1>
         <span className="group-meta">({group.members} {" miembros"})</span>
         <div className="group-actions">
-          <RegisterExpenseModal />
+          <RegisterExpenseModal groupId={group.id} />
         </div>
       </div>
 

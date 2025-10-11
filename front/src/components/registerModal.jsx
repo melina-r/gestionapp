@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { sendExpenseToBackend } from "../utils/expensesUtils";
 import "../styles/registerModal.css";
 
 function Dialog({ open, type = "info", title, message, onClose, onPrimary, primaryText = "OK" }) {
@@ -18,7 +19,7 @@ function Dialog({ open, type = "info", title, message, onClose, onPrimary, prima
   );
 }
 
-export default function RegisterExpenseModal({ onRegister }) {
+export default function RegisterExpenseModal({ onRegister, groupId }) {
   const [isOpen, setIsOpen] = useState(false);
   const [nombre, setNombre] = useState("");
   const [monto, setMonto] = useState("");
@@ -53,54 +54,42 @@ export default function RegisterExpenseModal({ onRegister }) {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!filePath) { setDlgWarn(true); return; }
-    if (!nombre.trim() || !monto) { setDlgError({ open: true, msg: "Nombre y monto son obligatorios." }); return; }
+const handleSubmit = async (e, groupId) => {
+  e.preventDefault();
+  if (!filePath) { setDlgWarn(true); return; }
+  if (!nombre.trim() || !monto) { setDlgError({ open: true, msg: "Nombre y monto son obligatorios." }); return; }
 
-    setIsLoading(true);
-    try {
-      // Get authenticated user from localStorage
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const usuario_id = user.id;
+  setIsLoading(true);
 
-      if (!usuario_id) {
-        throw new Error("Usuario no autenticado");
-      }
+  try {
+    const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+    const usuario_id = user.id;
+    if (!usuario_id) throw new Error("Usuario no autenticado");
 
-      const expenseData = {
-        titulo: nombre.trim(),
-        descripcion: descripcion?.trim() || null,
-        valor: parseFloat(monto),
-        fecha: new Date().toISOString().slice(0, 10),
-        autor: `${user.nombre} ${user.apellido}`,
-        usuario_id: usuario_id,
-        comprobante: filePath
-      };
+    const expenseData = {
+      titulo: nombre.trim(),
+      descripcion: descripcion?.trim() || null,
+      valor: parseFloat(monto),
+      fecha: new Date().toISOString().slice(0, 10),
+      autor: `${user.nombre} ${user.apellido}`,
+      usuario_id: Number(usuario_id),
+      grupo_id: Number(groupId),
+      comprobante: filePath,
+    };
+    console.log("JSON enviado al backend:", expenseData);
 
-      const res = await fetch("http://localhost:8000/expenses/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(expenseData)
-      });
+    const created = await sendExpenseToBackend(expenseData); // <-- usamos la util
+    onRegister?.(created);
 
-      if (!res.ok) {
-        let msg = "Error al crear el gasto.";
-        try { msg = (await res.json())?.detail || msg; } catch {}
-        throw new Error(msg);
-      }
+    setDlgSuccess(true);
+    setIsOpen(false);
+    setNombre(""); setMonto(""); setDescripcion(""); setFileName(""); setFilePath("");
 
-      const created = await res.json();
-      onRegister?.(created);
-      setDlgSuccess(true);
-      setIsOpen(false);
-      setNombre(""); setMonto(""); setDescripcion(""); setFileName(""); setFilePath("");
-    } catch (err) {
-      setDlgError({ open: true, msg: err?.message || "Error inesperado." });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  } catch (err) {
+    setDlgError({ open: true, msg: err?.message || "Error inesperado." });
+  } finally {
+    setIsLoading(false);
+  }}
 
   return (
       <>
@@ -116,7 +105,7 @@ export default function RegisterExpenseModal({ onRegister }) {
 
                 <div className="required-note">Los campos marcados con <b>*</b> son obligatorios.</div>
 
-                <form className="modal__form" onSubmit={handleSubmit}>
+                <form className="modal__form" onSubmit={(e) => handleSubmit(e, groupId)}>
                   <div className="field">
                     <label>Nombre *</label>
                     <input
