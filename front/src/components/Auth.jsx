@@ -8,26 +8,18 @@ const Auth = ({ onAuthenticated }) => {
   const [isLogin, setIsLogin] = useState(true);
 
   const handleLogin = async (email, password) => {
-    console.log("Attempting login with:", email);
     try {
-        console.log("Making fetch request to:", `${API_URL}/auth/login`);
         const response = await fetch(`${API_URL}/auth/login`, {
             method: "POST",
-            headers: { 
-                "Content-Type": "application/json",
-            },
-            mode: 'cors',
-            credentials: 'omit',
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ mail: email, password }),
         });
-        console.log("Response received:", response.status);
-        if (!response.ok) {
-            const errData = await response.json();
-            throw new Error(errData.detail || "Error en login");
-        }
 
-        const data = await response.json();
-        console.log("Response data:", data); // Debug log
+        const data = await response.json(); // leer body una sola vez
+
+        if (!response.ok) {
+            throw new Error(data.detail || "Error en login");
+        }
 
         sessionStorage.setItem('access_token', data.access_token);
         sessionStorage.setItem('user', JSON.stringify({
@@ -39,13 +31,10 @@ const Auth = ({ onAuthenticated }) => {
 
         onAuthenticated(email);
     } catch (error) {
-        console.error("Detailed error:", {
-            message: error.message,
-            stack: error.stack
-        });
+        console.error("Login error:", error);
         alert("Error al iniciar sesión: " + error.message);
     }
-  };
+};
 
   const handleRegister = async (email, password, nombre, apellido) => {
     const response = await fetch(`${API_URL}/auth/register`, {

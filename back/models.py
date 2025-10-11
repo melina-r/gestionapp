@@ -126,7 +126,8 @@ class GastoPublic(SQLModel):
     creado_en: datetime
 
 class GrupoCreate(SQLModel):
-    nombre: str
+    name: str
+    email: str
     direccion: Optional[str] = None
     descripcion: Optional[str] = None
 
