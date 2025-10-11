@@ -142,3 +142,10 @@
   font-size: 13px;
   color: #6b7280; /* gris medio */
 }
+
+/* Tabla de deudas/creditos */
+.tables-grid {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
