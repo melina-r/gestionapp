@@ -14,8 +14,21 @@ class Usuario(SQLModel, table=True):
     creado_en: Optional[datetime] = Field(default_factory=datetime.utcnow)
     actualizado_en: Optional[datetime] = Field(default_factory=datetime.utcnow)
 
-    # Relationships
     gastos: List["Gasto"] = Relationship(back_populates="usuario")
+    grupos: List["UsuarioGrupo"] = Relationship(back_populates="usuario")  # sin link_model
+
+class Grupo(SQLModel, table=True):
+    __tablename__ = "grupos"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    nombre: str = Field(max_length=255)
+    direccion: Optional[str] = None
+    descripcion: Optional[str] = None
+    creado_en: Optional[datetime] = Field(default_factory=datetime.now)
+    actualizado_en: Optional[datetime] = Field(default_factory=datetime.now)
+
+    # Relationships
+    gastos: List["Gasto"] = Relationship(back_populates="grupo")
 
 
 class Gasto(SQLModel, table=True):
@@ -28,12 +41,36 @@ class Gasto(SQLModel, table=True):
     fecha: date = Field(index=True)
     autor: str = Field(max_length=100, index=True)
     usuario_id: int = Field(foreign_key="usuarios.id", index=True)
+    grupo_id: Optional[int] = Field(foreign_key="grupos.id", index=True)
     comprobante: Optional[str] = Field(default=None, max_length=500)
-    creado_en: Optional[datetime] = Field(default_factory=datetime.utcnow)
-    actualizado_en: Optional[datetime] = Field(default_factory=datetime.utcnow)
+    creado_en: Optional[datetime] = Field(default_factory=datetime.now)
+    actualizado_en: Optional[datetime] = Field(default_factory=datetime.now)
 
     # Relationships
     usuario: Optional[Usuario] = Relationship(back_populates="gastos")
+    grupo: Optional["Grupo"] = Relationship()
+
+class Deuda(SQLModel, table=True):
+    __tablename__ = "deudas"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    gasto_id: int = Field(foreign_key="gastos.id", index=True)
+    deudor_id: int = Field(foreign_key="usuarios.id", index=True)
+    acreedor_id: int = Field(foreign_key="usuarios.id", index=True)
+    estado: int = Field(default=0)  # 0: pendiente, 1: pagado, etc
+    grupo_id: int = Field(foreign_key="grupos.id", index=True)
+    monto: float
+    creado_en: Optional[datetime] = Field(default_factory=datetime.now)
+    actualizado_en: Optional[datetime] = Field(default_factory=datetime.now)
+
+    # Relationships
+    deudor: Optional["Usuario"] = Relationship(
+        sa_relationship_kwargs={"foreign_keys": "[Deuda.deudor_id]"}
+    )
+    acreedor: Optional["Usuario"] = Relationship(
+        sa_relationship_kwargs={"foreign_keys": "[Deuda.acreedor_id]"}
+    )
+    grupo: Optional["Grupo"] = Relationship()
 
 
 # DTOs for API endpoints
@@ -64,6 +101,7 @@ class GastoCreate(SQLModel):
     fecha: date
     autor: str
     usuario_id: int
+    grupo_id: int
     comprobante: Optional[str] = None
 
 
@@ -86,3 +124,33 @@ class GastoPublic(SQLModel):
     usuario_id: int
     comprobante: Optional[str]
     creado_en: datetime
+
+class GrupoCreate(SQLModel):
+    name: str
+    email: str
+    direccion: Optional[str] = None
+    descripcion: Optional[str] = None
+
+class GrupoUpdate(SQLModel):
+    nombre: Optional[str] = None
+    direccion: Optional[str] = None
+    descripcion: Optional[str] = None
+
+class GrupoPublic(SQLModel):
+    id: int
+    nombre: str
+    direccion: Optional[str]
+    descripcion: Optional[str]
+    creado_en: datetime
+
+class UsuarioGrupo(SQLModel, table=True):
+    __tablename__ = "usuario_grupos"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    usuario_id: int = Field(foreign_key="usuarios.id", index=True)
+    grupo_id: int = Field(foreign_key="grupos.id", index=True)
+    creado_en: Optional[datetime] = Field(default_factory=datetime.now)
+
+    # Relationships
+    usuario: Optional["Usuario"] = Relationship()
+    grupo: Optional["Grupo"] = Relationship()

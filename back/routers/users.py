@@ -1,16 +1,24 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException
+from sqlmodel import Session, select
+from database import get_session
+from models import Usuario, UsuarioPublic
 
 router = APIRouter(
-    prefix="/users",        # prefix for all user routes
-    tags=["users"]          # for documentation
+    prefix="/users",
+    tags=["users"]
 )
 
+@router.get("/", response_model=list[UsuarioPublic])
+def list_users(session: Session = Depends(get_session)):
+    """List all users"""
+    statement = select(Usuario)
+    users = session.exec(statement).all()
+    return users
 
-@router.get("/")
-def list_users():
-    return [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]
-
-
-@router.get("/{user_id}")
-def get_user(user_id: int):
-    return {"id": user_id, "name": f"User {user_id}"}
+@router.get("/{user_id}", response_model=UsuarioPublic)
+def get_user(user_id: int, session: Session = Depends(get_session)):
+    """Get user by ID"""
+    user = session.get(Usuario, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    return user

@@ -2,37 +2,39 @@ import React, { useState } from "react";
 import Login from "./Login";
 import Register from "./Register";
 
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = "http://localhost:8000";  // Cambia esto
 
 const Auth = ({ onAuthenticated }) => {
   const [isLogin, setIsLogin] = useState(true);
 
   const handleLogin = async (email, password) => {
-    const response = await fetch(`${API_URL}/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mail: email, password }),
-    });
-    if (!response.ok) {
-      const errData = await response.json();
-      const errorMsg = typeof errData.detail === 'string' ? errData.detail : JSON.stringify(errData.detail);
-      alert(errorMsg || "Error en login");
-      return;
+    try {
+        const response = await fetch(`${API_URL}/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ mail: email, password }),
+        });
+
+        const data = await response.json(); // leer body una sola vez
+
+        if (!response.ok) {
+            throw new Error(data.detail || "Error en login");
+        }
+
+        sessionStorage.setItem('access_token', data.access_token);
+        sessionStorage.setItem('user', JSON.stringify({
+            id: data.user_id,
+            nombre: data.nombre,
+            apellido: data.apellido,
+            mail: email
+        }));
+
+        onAuthenticated(email);
+    } catch (error) {
+        console.error("Login error:", error);
+        alert("Error al iniciar sesión: " + error.message);
     }
-    const data = await response.json();
-    console.log("Usuario logueado:", data);
-
-    // Store token and user info in sessionStorage
-    sessionStorage.setItem('access_token', data.access_token);
-    sessionStorage.setItem('user', JSON.stringify({
-      id: data.user_id,
-      nombre: data.nombre,
-      apellido: data.apellido,
-      mail: email
-    }));
-
-    onAuthenticated(email);
-  };
+};
 
   const handleRegister = async (email, password, nombre, apellido) => {
     const response = await fetch(`${API_URL}/auth/register`, {
