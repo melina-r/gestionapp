@@ -6,11 +6,13 @@ import "react-datepicker/dist/react-datepicker.css";
 const details = () => {
   const [search, setSearch] = useState("");
   const [propietario, setPropietario] = useState("");
-  const [fecha, setFecha] = useState(null); // Cambiar de "" a null
+  const [fecha, setFecha] = useState(null);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [comprobanteModal, setComprobanteModal] = useState(null);
+
+  const baseUrl = "http://localhost:8000";
 
   function DateInputCalendar({ value, onChange }) {
     const ref = React.useRef(null);
@@ -44,63 +46,73 @@ const details = () => {
     );
   }
 
-  // Función para obtener gastos desde la API
+  // Cargar todos los gastos desde la API
   const fetchExpenses = async () => {
     setLoading(true);
     setError("");
-    
     try {
       console.log('🔄 Obteniendo gastos desde la API...');
-      
-      const response = await fetch('http://localhost:8000/expenses/');
-      
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-      
+      const response = await fetch(`${baseUrl}/expenses/`);
+      if (!response.ok) throw new Error(`Error ${response.status}: ${response.statusText}`);
       const expenses = await response.json();
       console.log('✅ Gastos obtenidos:', expenses);
-      
-      // Transformar los datos para que coincidan con el formato esperado
-      const transformedData = expenses.map((expense) => ({
-        id: expense.id,
-        titulo: expense.titulo,
-        descripcion: expense.descripcion || '',
-        valor: expense.valor,
-        fecha: expense.fecha, // Ya viene en formato YYYY-MM-DD
-        autor: expense.autor,
-        comprobante: expense.comprobante
-      }));
-      
+
+      // Normalizar cada gasto
+      const transformedData = (Array.isArray(expenses) ? expenses : []).map((expense, idx) => {
+        // autor puede venir como string o como objeto {id, nombre}
+        const autorRaw = expense.autor ?? expense.usuario ?? expense.autor_nombre ?? null;
+        let autorNombre = "";
+        if (typeof autorRaw === "string") autorNombre = autorRaw;
+        else if (autorRaw && typeof autorRaw === "object") autorNombre = autorRaw.nombre ?? autorRaw.name ?? String(autorRaw.id ?? "");
+        else autorNombre = expense.autor_nombre ?? expense.usuario_nombre ?? "";
+
+        return {
+          id: expense.id ?? `g-${idx}`,
+          titulo: expense.titulo ?? expense.title ?? "",
+          descripcion: expense.descripcion ?? expense.detalle ?? "",
+          valor: Number(expense.valor ?? expense.valor_total ?? expense.monto ?? 0),
+          fecha: expense.fecha ?? (expense.creado_en ? expense.creado_en.split("T")[0] : null),
+          autor: autorNombre || `Usuario ${expense.usuario ?? expense.autor ?? ""}`,
+          comprobante: expense.comprobante ?? null,
+          raw: expense
+        };
+      });
+
+      // ordenar por fecha descendente (si no hay fecha mantén el orden)
+      transformedData.sort((a, b) => {
+        if (!a.fecha && !b.fecha) return 0;
+        if (!a.fecha) return 1;
+        if (!b.fecha) return -1;
+        return new Date(b.fecha) - new Date(a.fecha);
+      });
+
       setData(transformedData);
-      
     } catch (err) {
       console.error('❌ Error al obtener gastos:', err);
       setError(`Error al cargar los gastos: ${err.message}`);
+      setData([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Cargar datos al montar el componente
+  // Cargar al montar
   useEffect(() => {
-    console.log('🏁 Componente de detalles montado, cargando datos...');
     fetchExpenses();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Obtener propietarios únicos (mejorado)
   const propietarios = [...new Set(
     data
-      .map((g) => g.autor)
-      .filter(autor => autor && autor.trim()) // Filtrar vacíos y espacios
-  )].sort(); // Ordenar alfabéticamente
+      .map((g) => (g.autor || "").trim())
+      .filter(autor => autor)
+  )].sort();
 
-  // Funciones de formato de fecha
   function formatDateToInput(fechaStr) {
-    // formato yyyy-mm-dd en la API
     return fechaStr;
   }
-  
+
   function formatDateToString(dateObj) {
     if (!dateObj || !(dateObj instanceof Date) || isNaN(dateObj.getTime())) return "";
     const yyyy = dateObj.getFullYear();
@@ -109,7 +121,6 @@ const details = () => {
     return `${yyyy}-${mm}-${dd}`;
   }
 
-  // Filtrar datos
   const filteredData = data.filter((gasto) => {
     const matchTitulo = gasto.titulo && gasto.titulo.toLowerCase().includes(search.toLowerCase());
     const matchPropietario = propietario ? gasto.autor === propietario : true;
@@ -118,9 +129,8 @@ const details = () => {
       matchFecha = formatDateToInput(gasto.fecha) === formatDateToString(fecha);
     }
     return matchTitulo && matchPropietario && matchFecha;
-  }).sort((a, b) => new Date(b.fecha) - new Date(a.fecha)); // Ordenar por fecha descendente
+  }).sort((a, b) => new Date(b.fecha || 0) - new Date(a.fecha || 0));
 
-  // Función para refrescar los datos
   const handleRefresh = () => {
     fetchExpenses();
   };
@@ -150,8 +160,7 @@ const details = () => {
                 </option>
               ))}
             </select>
-            
-            {/* Date Picker visual */}
+
             <div style={{ display: 'inline-block', marginRight: '8px', minWidth: '140px' }}>
               <DatePicker
                 selected={fecha}
@@ -163,12 +172,12 @@ const details = () => {
                 isClearable
               />
             </div>
-            
+
             <button
               className="filter-btn"
               onClick={() => {
                 setPropietario("");
-                setFecha(null); // Cambiar de "" a null
+                setFecha(null);
                 setSearch("");
               }}
               type="button"
@@ -176,8 +185,7 @@ const details = () => {
             >
               Limpiar filtros
             </button>
-            
-            {/* Botón para refrescar datos */}
+
             <button
               className="filter-btn"
               onClick={handleRefresh}
@@ -190,7 +198,6 @@ const details = () => {
           </div>
         </div>
 
-        {/* Mostrar error si existe */}
         {error && (
           <div style={{
             background: '#ffebee',
@@ -201,8 +208,8 @@ const details = () => {
             border: '1px solid #ffcdd2'
           }}>
             {error}
-            <button 
-              onClick={handleRefresh} 
+            <button
+              onClick={handleRefresh}
               style={{ marginLeft: '12px', padding: '4px 8px' }}
             >
               Reintentar
@@ -238,7 +245,7 @@ const details = () => {
                       <span className="tag">{gasto.descripcion}</span>
                     </td>
                     <td>{gasto.autor}</td>
-                    <td>${gasto.valor}</td>
+                    <td>${Number(gasto.valor).toFixed(2)}</td>
                     <td>
                       {gasto.comprobante ? (
                         <button
@@ -258,7 +265,6 @@ const details = () => {
           </table>
         </div>
 
-        {/* Información adicional */}
         {!loading && !error && (
           <div style={{
             marginTop: '16px',
@@ -272,7 +278,6 @@ const details = () => {
           </div>
         )}
 
-        {/* Modal comprobante */}
         {comprobanteModal && (
           <div
             style={{

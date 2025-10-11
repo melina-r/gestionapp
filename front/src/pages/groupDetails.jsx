@@ -2,19 +2,7 @@ import React, { useState, useEffect } from "react";
 import "../styles/details.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-
-function parseCSV(csv) {
-  const lines = csv.trim().split('\n');
-  const headers = lines[0].split(';');
-  return lines.slice(1).map((line, idx) => {
-    const values = line.split(';');
-    const obj = { id: `gasto-${idx}` };
-    headers.forEach((h, i) => {
-      obj[h.trim()] = values[i].trim();
-    });
-    return obj;
-  });
-}
+import { isSameDay, parseISO } from 'date-fns';
 
 const GroupDetails = ({ group }) => {
   const [search, setSearch] = useState("");
@@ -22,49 +10,64 @@ const GroupDetails = ({ group }) => {
   const [fecha, setFecha] = useState("");
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [showCalendar, setShowCalendar] = useState(false);
   const [comprobanteModal, setComprobanteModal] = useState(null);
+  const baseUrl = "http://localhost:8000";
 
-  function DateInputCalendar({ value, onChange }) {
-    const ref = React.useRef(null);
-    React.useEffect(() => {
-      if (ref.current) {
-        if (typeof ref.current.showPicker === "function") {
-          ref.current.showPicker();
-        } else {
-          ref.current.focus();
-        }
-      }
-    }, []);
-    return (
-      <input
-        ref={ref}
-        type="date"
-        value={value || ""}
-        onChange={e => onChange(e.target.value)}
-        style={{
-          position: 'absolute',
-          left: 0,
-          top: '110%',
-          zIndex: 10,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-          border: '1px solid #ddd',
-          borderRadius: '6px',
-          background: '#fff',
-        }}
-        autoFocus
-      />
-    );
-  }
+  // Cargar todos los gastos desde la API
+  const fetchExpenses = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      console.log('🔄 Obteniendo gastos desde la API...');
+      const response = await fetch(`${baseUrl}/expenses/`);
+      if (!response.ok) throw new Error(`Error ${response.status}: ${response.statusText}`);
+      const expenses = await response.json();
+      console.log('✅ Gastos obtenidos:', expenses);
+
+      // Normalizar cada gasto
+      const transformedData = (Array.isArray(expenses) ? expenses : []).map((expense, idx) => {
+        // autor puede venir como string o como objeto {id, nombre}
+        const autorRaw = expense.autor ?? expense.usuario ?? expense.autor_nombre ?? null;
+        let autorNombre = "";
+        if (typeof autorRaw === "string") autorNombre = autorRaw;
+        else if (autorRaw && typeof autorRaw === "object") autorNombre = autorRaw.nombre ?? autorRaw.name ?? String(autorRaw.id ?? "");
+        else autorNombre = expense.autor_nombre ?? expense.usuario_nombre ?? "";
+
+        return {
+          id: expense.id ?? `g-${idx}`,
+          titulo: expense.titulo ?? expense.title ?? "",
+          descripcion: expense.descripcion ?? expense.detalle ?? "",
+          valor: Number(expense.valor ?? expense.valor_total ?? expense.monto ?? 0),
+          fecha: expense.fecha ?? (expense.creado_en ? expense.creado_en.split("T")[0] : null),
+          autor: autorNombre || `Usuario ${expense.usuario ?? expense.autor ?? ""}`,
+          comprobante: expense.comprobante ?? null,
+          raw: expense
+        };
+      });
+
+      // ordenar por fecha descendente (si no hay fecha mantén el orden)
+      transformedData.sort((a, b) => {
+        if (!a.fecha && !b.fecha) return 0;
+        if (!a.fecha) return 1;
+        if (!b.fecha) return -1;
+        return new Date(b.fecha) - new Date(a.fecha);
+      });
+
+      setData(transformedData);
+    } catch (err) {
+      console.error('❌ Error al obtener gastos:', err);
+      setError(`Error al cargar los gastos: ${err.message}`);
+      setData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    fetch('/src/data/gastos.csv')
-      .then(res => res.text())
-      .then(text => {
-        setData(parseCSV(text));
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    fetchExpenses();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Obtener propietarios únicos
@@ -87,8 +90,9 @@ const GroupDetails = ({ group }) => {
     const matchTitulo = gasto.titulo && gasto.titulo.toLowerCase().includes(search.toLowerCase());
     const matchPropietario = propietario ? gasto.autor === propietario : true;
     let matchFecha = true;
+    
     if (fecha) {
-      matchFecha = formatDateToInput(gasto.fecha) === formatDateToString(fecha);
+      matchFecha = isSameDay(parseISO(gasto.fecha), fecha);
     }
     return matchTitulo && matchPropietario && matchFecha;
   }).sort((a, b) => new Date(b.fecha) - new Date(a.fecha)); // Ordenar por fecha descendente
@@ -164,9 +168,7 @@ const GroupDetails = ({ group }) => {
                   <tr key={gasto.id}>
                     <td>{gasto.fecha}</td>
                     <td>{gasto.titulo}</td>
-                    <td>
-                      <span className="tag">{gasto.descripcion}</span>
-                    </td>
+                    <td>{gasto.descripcion}</td>
                     <td>{gasto.autor}</td>
                     <td>${gasto.valor}</td>
                     <td>

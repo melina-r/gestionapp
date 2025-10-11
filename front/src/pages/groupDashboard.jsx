@@ -6,6 +6,8 @@ import GroupDetails from './groupDetails';
 import Tabs from '../components/tabs';
 import RegisterExpenseModal from '../components/registerModal';
 import '../styles/groupDashboard.css';
+import Debts from './debts';
+import Credits from './credits';
 
 const GroupDashboard = ({ group, onBack }) => {
   const [selectedTab, setSelectedTab] = useState(0);
@@ -25,7 +27,7 @@ const GroupDashboard = ({ group, onBack }) => {
       </div>
 
       <Tabs
-        tabs={['Dashboard', 'Detalles']}
+        tabs={['Dashboard', 'Detalles', 'Deudas', 'Créditos']}
         onTabChange={setSelectedTab}
       />
 
@@ -39,6 +41,14 @@ const GroupDashboard = ({ group, onBack }) => {
 
       {selectedTab === 1 && (
         <GroupDetails group={group} />
+      )}
+
+      {selectedTab === 2 && (
+        <Debts />
+      )}
+
+      {selectedTab === 3 && (
+        <Credits />
       )}
     </div>
   );
