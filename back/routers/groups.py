@@ -29,9 +29,9 @@ def get_user_groups(email: str, session: Session = Depends(get_session)):
     # Contar miembros de cada grupo
     result = []
     for grupo in grupos:
-        miembros_count = session.exec(
+        miembros_count = len(session.exec(
             select(UsuarioGrupo).where(UsuarioGrupo.grupo_id == grupo.id)
-        ).count()
+        ).all())
         result.append({
             "id": grupo.id,
             "name": grupo.nombre,
