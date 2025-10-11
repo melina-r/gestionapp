@@ -65,6 +65,19 @@ def get_expense(expense_id: int, session: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="Gasto no encontrado")
     return expense
 
+@router.get("/credits/{user_id}", response_model=List[Deuda])
+def get_credits(user_id: int, session: Session = Depends(get_session)):
+    """Get all credits (amounts owed to the user)"""
+    statement = select(Deuda).where(Deuda.acreedor_id == user_id)
+    credits = session.exec(statement).all()
+    return credits
+
+@router.get("/debts/{user_id}", response_model=List[Deuda])
+def get_debts(user_id: int, session: Session = Depends(get_session)):
+    """Get all debts (amounts the user owes)"""
+    statement = select(Deuda).where(Deuda.deudor_id == user_id)
+    debts = session.exec(statement).all()
+    return debts
 
 @router.delete("/{expense_id}")
 def delete_expense(expense_id: int, session: Session = Depends(get_session)):
