@@ -1,151 +1,200 @@
-/* Contenedor principal (tabla + usuarios) */
+/* Estilo general */
 .resume-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2rem;
+  font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+  background-color: #f9fafb;
+  color: #111827;
+  min-height: 100vh;
+}
+
+/* Tablas */
+.tables-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr; /* tabla ocupa más espacio que usuarios */
-  gap: 16px;
-  margin-bottom: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
 }
 
-/* Asegura que hijos (tabla y usuarios) tengan mismo alto visual */
-.resume-container > * {
-  align-self: start;
+.table-section {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+  transition: all 0.2s ease;
 }
 
+.table-section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
 
-/* Contenedor de la tabla */
+.table-section h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 1rem;
+}
+
+/* Tabla de resumen */
 .resume-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 24px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  overflow: hidden; /* para que los bordes redondeados se apliquen */
 }
 
-/* Encabezados */
 .resume-table th {
   text-align: left;
-  font-size: 14px;
-  font-weight: 600;
-  color: #374151; /* gris oscuro */
-  background: #f9fafb; /* gris muy claro */
-  padding: 12px 16px;
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-weight: 500;
+  padding-bottom: 0.5rem;
   border-bottom: 1px solid #e5e7eb;
 }
 
-/* Celdas */
 .resume-table td {
-  font-size: 14px;
-  color: #111827; /* casi negro */
-  padding: 12px 16px;
-  border-bottom: 1px solid #e5e7eb;
-  text-align: start;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f3f4f6;
 }
 
-/* Última fila sin borde inferior */
-.resume-table tr:last-child td {
-  border-bottom: none;
+.expandable-row {
+  cursor: pointer;
+  transition: background 0.15s;
 }
 
-/* Hover en filas */
-.resume-table tbody tr:hover {
-  background-color: #f3f4f6; /* gris claro */
+.expandable-row:hover {
+  background: #f9fafb;
 }
 
-/* Contenedor general */
-.resume-users {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+.amount {
+  text-align: right;
+  color: #111827;
+  font-weight: 500;
+}
+
+.expand-icon {
+  font-size: 0.8rem;
+  margin-right: 0.3rem;
+  color: #6b7280;
+}
+
+.nested-table {
+  width: 100%;
+  margin-top: 0.5rem;
+  background: #f9fafb;
   border-radius: 8px;
-  padding: 16px;
 }
 
-/* Header con título y botón */
+.nested-table td {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+/* Footer */
+.resume-footer {
+  display: flex;
+  justify-content: center;
+}
+
+.refresh-button {
+  background-color: #111827;
+  color: white;
+  padding: 0.6rem 1.4rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.refresh-button:hover {
+  background-color: #2563eb;
+}
+
+/* Mensaje de error */
+.error-message {
+  background-color: #fee2e2;
+  color: #991b1b;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+}
+
+/* Usuarios */
+.resume-users {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+}
+
 .users-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 1.5rem;
 }
 
-/* Título */
-.resume-users h3 {
-  font-size: 16px;
+.users-header h3 {
+  font-size: 1.1rem;
   font-weight: 600;
-  color: #111827; /* gris casi negro */
-  margin: 0;
+  color: #374151;
 }
 
-/* Botón agregar miembro */
 .add-member-btn {
-  background-color: #007bff;
+  background-color: #2563eb;
   color: white;
   border: none;
-  border-radius: 4px;
-  padding: 8px 12px;
-  font-size: 12px;
-  font-weight: 500;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background 0.2s ease;
 }
 
 .add-member-btn:hover {
-  background-color: #0056b3;
+  background-color: #1e40af;
 }
 
-.add-member-btn:active {
-  transform: translateY(1px);
-}
-
-/* Lista */
+/* Lista de usuarios */
 .resume-users-list {
   list-style: none;
-  padding: 0;
   margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  padding: 0;
 }
 
-/* Cada item */
 .resume-user-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 0;
-  border-bottom: 1px solid #e5e7eb;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f3f4f6;
 }
 
-/* Último sin borde */
-.resume-user-item:last-child {
-  border-bottom: none;
-}
-
-/* Avatar */
 .resume-user-avatar {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  object-fit: cover;
+  background: #e5e7eb;
 }
 
-/* Nombre */
 .resume-user-name {
-  font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   color: #111827;
 }
 
-/* Email */
 .resume-user-email {
-  font-size: 13px;
-  color: #6b7280; /* gris medio */
+  font-size: 0.85rem;
+  color: #6b7280;
 }
 
-/* Tabla de deudas/creditos */
-.tables-grid {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
+/* Animación sutil */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.resume-container, .table-section, .resume-users {
+  animation: fadeIn 0.4s ease;
 }
