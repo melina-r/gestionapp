@@ -1,16 +1,22 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
-const BalanceDetails = ({ userId }) => {
+const BalanceDetails = ({ userId, groupId }) => {
   const [credits, setCredits] = useState([]);
   const [debts, setDebts] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // group id efectivo: prop -> sessionStorage -> 1
+  const gid = useMemo(() => {
+    const stored = Number(sessionStorage.getItem('current_group_id'));
+    return Number(groupId) || (Number.isFinite(stored) && stored > 0 ? stored : 1);
+  }, [groupId]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const [resCred, resDebt] = await Promise.all([
-        fetch(`http://localhost:8000/expenses/credits/${userId}`),
-        fetch(`http://localhost:8000/expenses/debts/${userId}`),
+        fetch(`http://localhost:8000/expenses/credits/${userId}?grupo_id=${gid}`),
+        fetch(`http://localhost:8000/expenses/debts/${userId}?grupo_id=${gid}`),
       ]);
 
       const creditsData = await resCred.json();
@@ -27,7 +33,7 @@ const BalanceDetails = ({ userId }) => {
 
   useEffect(() => {
     fetchData();
-  }, [userId]);
+  }, [userId, gid]);
 
   if (loading) return <p style={{ color: "black" }}>Cargando balance detallado...</p>;
 
