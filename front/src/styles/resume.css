@@ -1,200 +1,110 @@
-/* Estilo general */
-.resume-container {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  padding: 2rem;
-  font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
-  background-color: #f9fafb;
-  color: #111827;
-  min-height: 100vh;
-}
-
-/* Tablas */
-.tables-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 2rem;
-}
-
+/* Secciones principales */
 .table-section {
   background: white;
   border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
   padding: 1.5rem;
-  transition: all 0.2s ease;
+  border-top: 4px solid #16a34a; /* verde por defecto */
 }
 
-.table-section:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+.table-section.debt {
+  border-top-color: #dc2626;
 }
 
+/* Títulos */
 .table-section h3 {
+  display: flex;
+  gap: 0.5rem;
   font-size: 1.1rem;
-  font-weight: 600;
-  color: #374151;
+  font-weight: 700;
+  color: #111827;
   margin-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 0.4rem;
 }
 
-/* Tabla de resumen */
+/* Tabla con estilo limpio */
 .resume-table {
   width: 100%;
   border-collapse: collapse;
+  border-spacing: 0;
 }
 
+/* Encabezados */
 .resume-table th {
   text-align: left;
-  font-size: 0.9rem;
   color: #6b7280;
-  font-weight: 500;
+  font-size: 0.85rem;
+  font-weight: 600;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid #e5e7eb;
 }
 
-.resume-table td {
-  padding: 0.75rem 0;
-  border-bottom: 1px solid #f3f4f6;
+/* Filas principales */
+.resume-table tbody tr {
+  transition: background 0.15s ease;
 }
 
 .expandable-row {
+  text-align: start;
   cursor: pointer;
-  transition: background 0.15s;
 }
 
 .expandable-row:hover {
   background: #f9fafb;
 }
 
-.amount {
-  text-align: right;
-  color: #111827;
-  font-weight: 500;
+/* Celdas */
+.resume-table td {
+  padding: 0.75rem 0.75rem;
+  font-size: 0.95rem;
+  border-bottom: 1px solid #f3f4f6;
+  text-align: start;
 }
 
+/* Monto a la derecha */
+.amount {
+  text-align: right;
+  font-weight: 600;
+}
+
+.amount.positive {
+  color: #16a34a;
+}
+
+.amount.negative {
+  color: #dc2626;
+}
+
+/* Icono de expansión más sutil */
 .expand-icon {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
+  color: #9ca3af;
   margin-right: 0.3rem;
-  color: #6b7280;
+}
+
+/* Tabla anidada (cuando expandís una fila) */
+.expanded-content td {
+  background: #f9fafb;
+  padding: 0.75rem 1rem;
 }
 
 .nested-table {
   width: 100%;
-  margin-top: 0.5rem;
-  background: #f9fafb;
-  border-radius: 8px;
+  border-collapse: collapse;
 }
 
 .nested-table td {
-  padding: 0.4rem 0.75rem;
+  padding: 0.4rem 0.5rem;
   font-size: 0.9rem;
   color: #374151;
 }
 
-/* Footer */
-.resume-footer {
-  display: flex;
-  justify-content: center;
+/* Alternar color de filas anidadas */
+.nested-table tr:nth-child(odd) td {
+  background: #f3f4f6;
 }
 
-.refresh-button {
-  background-color: #111827;
-  color: white;
-  padding: 0.6rem 1.4rem;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.refresh-button:hover {
-  background-color: #2563eb;
-}
-
-/* Mensaje de error */
-.error-message {
-  background-color: #fee2e2;
-  color: #991b1b;
-  padding: 1rem;
-  border-radius: 8px;
-  text-align: center;
-}
-
-/* Usuarios */
-.resume-users {
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  padding: 1.5rem;
-}
-
-.users-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.users-header h3 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #374151;
-}
-
-.add-member-btn {
-  background-color: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 0.5rem 1rem;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.add-member-btn:hover {
-  background-color: #1e40af;
-}
-
-/* Lista de usuarios */
-.resume-users-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.resume-user-item {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.resume-user-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #e5e7eb;
-}
-
-.resume-user-name {
-  font-weight: 500;
-  color: #111827;
-}
-
-.resume-user-email {
-  font-size: 0.85rem;
-  color: #6b7280;
-}
-
-/* Animación sutil */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.resume-container, .table-section, .resume-users {
-  animation: fadeIn 0.4s ease;
+.expandable-row {
+  color: rgb(75, 70, 70);
 }

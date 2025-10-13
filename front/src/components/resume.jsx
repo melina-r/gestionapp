@@ -262,25 +262,32 @@ export default function Resume({ groupId }) {
   };
 
   return (
-    <div className="resume-container">
+   <div className="resume-container">
       {/* Resumen de Gastos */}
       <div className="tables-grid">
-        <div className="table-section">
-          <h3>Mis Deudas</h3>
+        {/* Sección de Deudas */}
+        <div className="table-section debt">
+          <h3>💸 Mis Deudas</h3>
           {loading ? <p>Cargando deudas...</p> : renderExpandableTable(debts, 'debt')}
         </div>
 
-        <div className="table-section">
-          <h3>Mis Créditos</h3>
+        {/* Sección de Créditos */}
+        <div className="table-section credit">
+          <h3>🪙 Mis Créditos</h3>
           {loading ? <p>Cargando créditos...</p> : renderExpandableTable(credits, 'credit')}
         </div>
       </div>
 
       <div className="resume-footer">
-        <button onClick={handleRefresh} disabled={loading} className="refresh-button">
+        <button
+          onClick={handleRefresh}
+          disabled={loading}
+          className="refresh-button"
+        >
           {loading ? "Actualizando..." : "Actualizar"}
         </button>
       </div>
+
 
       {error && (
         <div className="error-message">

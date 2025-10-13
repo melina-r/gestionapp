@@ -21,7 +21,7 @@ const GroupDetails = ({ group }) => {
     setError("");
     try {
       console.log('🔄 Obteniendo gastos desde la API...');
-      const response = await fetch(`${baseUrl}/expenses/`);
+      const response = await fetch(`${baseUrl}/expenses/group/${group.id}`);
       if (!response.ok) throw new Error(`Error ${response.status}: ${response.statusText}`);
       const expenses = await response.json();
       console.log('✅ Gastos obtenidos:', expenses);
@@ -47,13 +47,7 @@ const GroupDetails = ({ group }) => {
         };
       });
 
-      // ordenar por fecha descendente (si no hay fecha mantén el orden)
-      transformedData.sort((a, b) => {
-        if (!a.fecha && !b.fecha) return 0;
-        if (!a.fecha) return 1;
-        if (!b.fecha) return -1;
-        return new Date(b.fecha) - new Date(a.fecha);
-      });
+      console.log('✅ Gastos transformados:', transformedData);
 
       setData(transformedData);
     } catch (err) {
