@@ -96,9 +96,10 @@ export default function Resume({ groupId }) {
       const usersData = {};
       const uniqueUserIds = new Set();
 
+      const groupIdParam = groupId ? `?grupo_id=${groupId}` : '';
       const [debtsResponse, creditsResponse] = await Promise.all([
-        fetch(`${API}/expenses/debts/${currentUserId}`, { headers: authHeaders() }),
-        fetch(`${API}/expenses/credits/${currentUserId}`, { headers: authHeaders() })
+        fetch(`${API}/expenses/debts/${currentUserId}${groupIdParam}`, { headers: authHeaders() }),
+        fetch(`${API}/expenses/credits/${currentUserId}${groupIdParam}`, { headers: authHeaders() })
       ]);
 
       const debtsData = await debtsResponse.json();
@@ -148,7 +149,7 @@ export default function Resume({ groupId }) {
   useEffect(() => {
     fetchUserData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [groupId]);
 
   const groupByUser = (items, userIdField) => {
     return items.reduce((acc, item) => {

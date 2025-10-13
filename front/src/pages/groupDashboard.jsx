@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import BalanceCards from '../components/balance_cards';
 import Resume from '../components/resume';
-import Graphics from '../components/graphics';
 import GroupDetails from './groupDetails';
 import Tabs from '../components/tabs';
 import RegisterExpenseModal from '../components/registerModal';
@@ -33,9 +32,8 @@ const GroupDashboard = ({ group, onBack }) => {
 
       {selectedTab === 0 && (
         <div className="dashboard-tab">
-          <BalanceCards />
+          <BalanceCards groupId={group.id} />
           <Resume groupId={group.id} />
-          <Graphics />
         </div>
       )}
 
