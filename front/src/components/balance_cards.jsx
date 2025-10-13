@@ -280,7 +280,7 @@ const BalanceCards = ({ groupId }) => {
         </button>
       </div>
 
-      {usuario && <BalanceDetails userId={usuario.id} groupId={gid} />}
+      {/* {usuario && <BalanceDetails userId={usuario.id} groupId={gid} />} */}
     </div>
   );
 };
