@@ -378,7 +378,11 @@ def get_expenses_by_user(user_id: int, session: Session = Depends(get_session)):
 
 @router.get("/group/{group_id}", response_model=List[GastoPublic])
 def get_expenses_by_group(group_id: int, session: Session = Depends(get_session)):
-    statement = select(Gasto).order_by(Gasto.fecha.desc())
+    statement = (
+        select(Gasto)
+        .where(Gasto.grupo_id == group_id)
+        .order_by(Gasto.fecha.desc())
+    )
     expenses = session.exec(statement).all()
     return expenses
 
