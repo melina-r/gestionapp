@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import '../styles/balance_cards.css';
-import BalanceDetails from './BalanceDetails';
 
 const API = 'http://localhost:8000';
 
@@ -277,8 +276,6 @@ if (gastos.length > 0 && usuario) {
           ↻ Actualizar balance
         </button>
       </div>
-
-      {usuario && <BalanceDetails userId={usuario.id} groupId={gid} />}
     </div>
   );
 };
