@@ -44,13 +44,11 @@ const BalanceCards = ({ groupId }) => {
   };
 
   const fetchExpenses = async (userId, group) => {
-    const resp = await fetch(`${API}/expenses/?grupo_id=${group}&usuario_id=${userId}`, {
-      headers: buildAuthHeaders()
-    });
-    if (!resp.ok) throw new Error(`Error ${resp.status}: ${resp.statusText}`);
-    const expenses = await resp.json();
-    setGastos(Array.isArray(expenses) ? expenses : []);
-  };
+  const resp = await fetch(`${API}/expenses/group/${group}`, { headers: buildAuthHeaders() });
+  if (!resp.ok) throw new Error(`Error ${resp.status}: ${resp.statusText}`);
+  const expenses = await resp.json();
+  setGastos(Array.isArray(expenses) ? expenses : []);
+};
 
   // ⬇️ NUEVO: usa las mismas endpoints que BalanceDetails
   const fetchTotalsFromLists = async (group, userId) => {
@@ -106,18 +104,18 @@ const BalanceCards = ({ groupId }) => {
   }, [usuario, gid]);
 
   // ===== Cálculos locales (propios y “totales visibles”)
-  let total = 0;
-  let propios = 0;
+let total = 0;
+let propios = 0;
 
-  if (gastos.length > 0 && usuario) {
-    for (const gasto of gastos) {
-      const valor = Number(gasto.valor) || 0;
-      total += valor;
-      if (Number(gasto.usuario_id) === Number(usuario.id)) {
-        propios += valor;
-      }
+if (gastos.length > 0 && usuario) {
+  for (const gasto of gastos) {
+    const valor = Number(gasto.valor);
+    total += valor;
+    if (Number(gasto.usuario_id) === Number(usuario.id)) {
+      propios += valor;
     }
   }
+}
 
   const aPagar = Number(toPay) || 0;
   const aRecibir = Number(toReceive) || 0;
