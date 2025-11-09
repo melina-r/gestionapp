@@ -82,7 +82,7 @@ const Register = ({ onRegister, onSwitchToLogin }) => {
       <form onSubmit={handleSubmit}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '18px' }}>
           <div>
-            <label style={labelStyle}>Nombre:</label>
+            <label style={labelStyle}>Nombre *:</label>
             <input
               type="text"
               name="nombre"
@@ -96,7 +96,7 @@ const Register = ({ onRegister, onSwitchToLogin }) => {
           </div>
           
           <div>
-            <label style={labelStyle}>Apellido:</label>
+            <label style={labelStyle}>Apellido *:</label>
             <input
               type="text"
               name="apellido"
@@ -111,7 +111,7 @@ const Register = ({ onRegister, onSwitchToLogin }) => {
         </div>
         
         <div style={{ marginBottom: '18px' }}>
-          <label style={labelStyle}>Email:</label>
+          <label style={labelStyle}>Email *:</label>
           <input
             type="email"
             name="email"
@@ -168,7 +168,7 @@ const Register = ({ onRegister, onSwitchToLogin }) => {
         
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '25px' }}>
           <div>
-            <label style={labelStyle}>Contraseña:</label>
+            <label style={labelStyle}>Contraseña *:</label>
             <input
               type="password"
               name="password"
@@ -182,7 +182,7 @@ const Register = ({ onRegister, onSwitchToLogin }) => {
           </div>
           
           <div>
-            <label style={labelStyle}>Confirmar Contraseña:</label>
+            <label style={labelStyle}>Confirmar Contraseña *:</label>
             <input
               type="password"
               name="confirmPassword"

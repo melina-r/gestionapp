@@ -24,7 +24,7 @@ const GroupDashboard = ({ group, onBack }) => {
       </div>
 
       <Tabs
-        tabs={['Dashboard', 'Detalles']}
+        tabs={['Inicio', 'Detalles']}
         onTabChange={setSelectedTab}
       />
 
