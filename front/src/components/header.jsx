@@ -11,6 +11,31 @@ const Header = ({ user, onLogout, onNavigateHome, showRegisterButton = false }) 
     });
 
     const [showUserMenu, setShowUserMenu] = React.useState(false);
+    const menuRef = React.useRef(null);
+
+    // Cerrar menú al hacer click fuera
+    React.useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setShowUserMenu(false);
+            }
+        };
+
+        if (showUserMenu) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showUserMenu]);
+
+    // Obtener email del usuario
+    const getUserEmail = () => {
+        if (!user) return 'Usuario';
+        if (typeof user === 'string') return user;
+        return user.email || user.mail || user.nombre || 'Usuario';
+    };
 
     return (
         <header className="header">
@@ -43,7 +68,7 @@ const Header = ({ user, onLogout, onNavigateHome, showRegisterButton = false }) 
                 {/* Register Expense Button - Solo mostrar si showRegisterButton es true */}
                 {showRegisterButton && <RegisterExpenseModal />}
                 {/* Profile Circle */}
-                <div style={{ position: 'relative' }}>
+                <div style={{ position: 'relative' }} ref={menuRef}>
                     <div
                         className={`profile${hovered.profile ? ' highlight' : ''}`}
                         onMouseEnter={() => setHovered(h => ({ ...h, profile: true }))}
@@ -57,7 +82,7 @@ const Header = ({ user, onLogout, onNavigateHome, showRegisterButton = false }) 
                             <ellipse cx="12" cy="17" rx="7" ry="5"/>
                         </svg>
                     </div>
-                    
+
                     {/* User menu dropdown */}
                     {showUserMenu && (
                         <div style={{
@@ -70,15 +95,17 @@ const Header = ({ user, onLogout, onNavigateHome, showRegisterButton = false }) 
                             boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                             padding: '10px',
                             minWidth: '200px',
-                            zIndex: 1000
+                            zIndex: 1000,
+                            marginTop: '8px'
                         }}>
                             <div style={{
                                 padding: '10px',
                                 borderBottom: '1px solid #eee',
                                 fontSize: '14px',
-                                color: '#666'
+                                color: '#666',
+                                wordBreak: 'break-word'
                             }}>
-                                {user || 'Usuario'}
+                                {getUserEmail()}
                             </div>
                             <button
                                 onClick={() => {
