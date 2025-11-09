@@ -251,6 +251,45 @@ export default function Resume({ groupId }) {
     }
   };
 
+  const handleSettleAllDebtsWithCreditor = async (acreedorId) => {
+    const userName = users[acreedorId]?.nombre || 'este usuario';
+    if (!window.confirm(`¿Confirmas que pagaste todas las deudas con ${userName}?`)) return;
+    try {
+      const response = await fetch(`${API}/expenses/debts/settle-all?deudor_id=${currentUserId}&acreedor_id=${acreedorId}&grupo_id=${groupId}`, {
+        method: 'POST',
+        headers: authHeaders()
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Error al saldar las deudas');
+      }
+      const result = await response.json();
+      alert(result.message);
+      fetchUserData(); // Refrescar datos
+    } catch (err) {
+      alert(`Error: ${err.message}`);
+    }
+  };
+
+  const handleSettleIndividualDebt = async (debtId, amount, expenseTitle) => {
+    if (!window.confirm(`¿Confirmas que pagaste la deuda de $${amount.toFixed(2)} por "${expenseTitle}"?`)) return;
+    try {
+      const response = await fetch(`${API}/expenses/debts/${debtId}/settle`, {
+        method: 'PATCH',
+        headers: authHeaders()
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Error al saldar la deuda');
+      }
+      const result = await response.json();
+      alert(result.message);
+      fetchUserData(); // Refrescar datos
+    } catch (err) {
+      alert(`Error: ${err.message}`);
+    }
+  };
+
   const renderExpandableTable = (data, type) => {
     const expanded = type === 'debt' ? expandedDebts : expandedCredits;
     const toggleFunction = (userId) => toggleExpansion(userId, type);
@@ -260,43 +299,86 @@ export default function Resume({ groupId }) {
     }
 
     return (
-      <table className="resume-table">
+      <table className="resume-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr>
-            <th>Usuario</th>
-            <th>Monto Total</th>
+            <th style={{ textAlign: 'center', padding: '12px' }}>Usuario</th>
+            <th style={{ textAlign: 'center', padding: '12px' }}>Monto Total</th>
+            {type === 'debt' && <th style={{ textAlign: 'center', padding: '12px' }}>Estado</th>}
+            {type === 'debt' && <th style={{ textAlign: 'center', padding: '12px' }}>Marcar como:</th>}
           </tr>
         </thead>
         <tbody>
-          {Object.entries(data).map(([userId, userData]) => (
-            <React.Fragment key={userId}>
-              <tr onClick={() => toggleFunction(userId)} className="expandable-row">
-                <td>
-                  <span className="expand-icon">{expanded[userId] ? '▼' : '▶'}</span>
-                  {users[userId]?.nombre || 'Usuario desconocido'}
-                </td>
-                <td className="amount">
-                  ${userData.total.toFixed(2)}
-                </td>
-              </tr>
-              {expanded[userId] && (
-                <tr className="expanded-content">
-                  <td colSpan="2">
-                    <table className="nested-table">
-                      <tbody>
-                        {userData.items.map((item) => (
-                          <tr key={`${item.gasto_id}-${item.deudor_id}-${item.acreedor_id}`}>
-                            <td>{expenses[item.gasto_id]?.titulo || 'Cargando...'}</td>
-                            <td className="amount">${item.monto.toFixed(2)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+          {Object.entries(data).map(([userId, userData]) => {
+            return (
+              <React.Fragment key={userId}>
+                <tr className="expandable-row">
+                  <td onClick={() => toggleFunction(userId)} style={{ cursor: 'pointer', padding: '12px', textAlign: 'left' }}>
+                    <span className="expand-icon">{expanded[userId] ? '▼' : '▶'}</span>
+                    {users[userId]?.nombre || 'Usuario desconocido'}
                   </td>
+                  <td onClick={() => toggleFunction(userId)} style={{ cursor: 'pointer', padding: '12px', textAlign: 'center' }}>
+                    ${userData.total.toFixed(2)}
+                  </td>
+                  {type === 'debt' && (
+                    <td onClick={() => toggleFunction(userId)} style={{ cursor: 'pointer', padding: '12px', textAlign: 'center' }}>
+                      Pendiente
+                    </td>
+                  )}
+                  {type === 'debt' && (
+                    <td style={{ padding: '12px', textAlign: 'center' }}>
+                      <button
+                        onClick={() => handleSettleAllDebtsWithCreditor(userId)}
+                        className="settle-all-btn"
+                        style={{
+                          padding: '6px 16px',
+                          fontSize: '0.85rem',
+                          backgroundColor: '#4CAF50',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        ✓ Pagado
+                      </button>
+                    </td>
+                  )}
                 </tr>
-              )}
-            </React.Fragment>
-          ))}
+                {expanded[userId] && (
+                  <tr className="expanded-content">
+                    <td colSpan={type === 'debt' ? '4' : '2'} style={{ padding: '0', backgroundColor: '#f9f9f9' }}>
+                      <div style={{ padding: '12px 16px' }}>
+                        <div style={{ fontWeight: 'bold', marginBottom: '8px', fontSize: '0.9rem' }}>Detalles:</div>
+                        {userData.items.map((item, index) => (
+                          <div
+                            key={`${item.id || item.gasto_id}-${item.deudor_id}-${item.acreedor_id}`}
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'flex-start',
+                              alignItems: 'center',
+                              gap: '20px',
+                              padding: '8px 0',
+                              paddingLeft: '16px',
+                              borderBottom: index < userData.items.length - 1 ? '1px solid #e0e0e0' : 'none'
+                            }}
+                          >
+                            <div style={{ flex: 1, textAlign: 'left' }}>
+                              <span style={{ fontWeight: '500' }}>{expenses[item.gasto_id]?.titulo || 'Cargando...'}</span>
+                            </div>
+                            <div style={{ minWidth: '80px', textAlign: 'left', fontWeight: '500' }}>
+                              ${item.monto.toFixed(2)}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
+            );
+          })}
         </tbody>
       </table>
     );
@@ -307,12 +389,12 @@ export default function Resume({ groupId }) {
       {/* Resumen de Gastos */}
       <div className="tables-grid">
         <div className="table-section">
-          <h3>Mis Deudas</h3>
+          <h3 style={{ textAlign: 'center', marginBottom: '10px' }}>Mis Deudas</h3>
           {loading ? <p>Cargando deudas...</p> : renderExpandableTable(debts, 'debt')}
         </div>
 
         <div className="table-section">
-          <h3>Mis Créditos</h3>
+          <h3 style={{ textAlign: 'center' }}>Mis Créditos</h3>
           {loading ? <p>Cargando créditos...</p> : renderExpandableTable(credits, 'credit')}
         </div>
       </div>
