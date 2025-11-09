@@ -304,7 +304,8 @@ export default function Resume({ groupId }) {
           <tr>
             <th style={{ textAlign: 'center', padding: '12px' }}>Usuario</th>
             <th style={{ textAlign: 'center', padding: '12px' }}>Monto Total</th>
-            {type === 'debt' && <th style={{ textAlign: 'center', padding: '12px' }}>Acciones</th>}
+            {type === 'debt' && <th style={{ textAlign: 'center', padding: '12px' }}>Estado</th>}
+            {type === 'debt' && <th style={{ textAlign: 'center', padding: '12px' }}>Marcar como:</th>}
           </tr>
         </thead>
         <tbody>
@@ -319,6 +320,11 @@ export default function Resume({ groupId }) {
                   <td onClick={() => toggleFunction(userId)} style={{ cursor: 'pointer', padding: '12px', textAlign: 'center' }}>
                     ${userData.total.toFixed(2)}
                   </td>
+                  {type === 'debt' && (
+                    <td onClick={() => toggleFunction(userId)} style={{ cursor: 'pointer', padding: '12px', textAlign: 'center' }}>
+                      Pendiente
+                    </td>
+                  )}
                   {type === 'debt' && (
                     <td style={{ padding: '12px', textAlign: 'center' }}>
                       <button
@@ -342,7 +348,7 @@ export default function Resume({ groupId }) {
                 </tr>
                 {expanded[userId] && (
                   <tr className="expanded-content">
-                    <td colSpan={type === 'debt' ? '3' : '2'} style={{ padding: '0', backgroundColor: '#f9f9f9' }}>
+                    <td colSpan={type === 'debt' ? '4' : '2'} style={{ padding: '0', backgroundColor: '#f9f9f9' }}>
                       <div style={{ padding: '12px 16px' }}>
                         <div style={{ fontWeight: 'bold', marginBottom: '8px', fontSize: '0.9rem' }}>Detalles:</div>
                         {userData.items.map((item, index) => (
@@ -364,25 +370,6 @@ export default function Resume({ groupId }) {
                             <div style={{ minWidth: '80px', textAlign: 'left', fontWeight: '500' }}>
                               ${item.monto.toFixed(2)}
                             </div>
-                            {type === 'debt' && (
-                              <div>
-                                <button
-                                  onClick={() => handleSettleIndividualDebt(item.id, item.monto, expenses[item.gasto_id]?.titulo || 'Gasto')}
-                                  style={{
-                                    padding: '4px 12px',
-                                    fontSize: '0.8rem',
-                                    backgroundColor: '#4CAF50',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    whiteSpace: 'nowrap'
-                                  }}
-                                >
-                                  ✓ Pagar
-                                </button>
-                              </div>
-                            )}
                           </div>
                         ))}
                       </div>
