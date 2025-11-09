@@ -24,40 +24,7 @@ const GroupDetails = ({ group }) => {
   const [fecha, setFecha] = useState("");
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showCalendar, setShowCalendar] = useState(false);
   const [comprobanteModal, setComprobanteModal] = useState(null);
-
-  function DateInputCalendar({ value, onChange }) {
-    const ref = React.useRef(null);
-    React.useEffect(() => {
-      if (ref.current) {
-        if (typeof ref.current.showPicker === "function") {
-          ref.current.showPicker();
-        } else {
-          ref.current.focus();
-        }
-      }
-    }, []);
-    return (
-      <input
-        ref={ref}
-        type="date"
-        value={value || ""}
-        onChange={e => onChange(e.target.value)}
-        style={{
-          position: 'absolute',
-          left: 0,
-          top: '110%',
-          zIndex: 10,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-          border: '1px solid #ddd',
-          borderRadius: '6px',
-          background: '#fff',
-        }}
-        autoFocus
-      />
-    );
-  }
 
   useEffect(() => {
     const fetchExpenses = async () => {
