@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlmodel import Session, select
 from typing import List, Optional
-from models import Grupo, Usuario, UsuarioGrupo, GrupoCreate
+from models import Grupo, Usuario, UsuarioGrupo, GrupoCreate, Gasto, Deuda
 from database import get_session
 from datetime import datetime, timedelta, timezone
+from decimal import Decimal, ROUND_HALF_UP
 import secrets
 
 router = APIRouter(prefix="/groups", tags=["groups"])
@@ -16,6 +17,123 @@ def _now():
 
 def _gen_code(group_id: int) -> str:
     return f"G{group_id}-{secrets.token_urlsafe(8)}"
+
+
+def _to_cents(x) -> int:
+    d = x if isinstance(x, Decimal) else Decimal(str(x))
+    return int((d * Decimal("100")).to_integral_value(rounding=ROUND_HALF_UP))
+
+
+def _from_cents(c: int) -> Decimal:
+    return (Decimal(c) / Decimal("100")).quantize(Decimal("0.01"))
+
+
+def _net_or_create_debt(
+    *,
+    session: Session,
+    grupo_id: int,
+    deudor_id: int,
+    acreedor_id: int,
+    monto: Decimal,
+    gasto_id: Optional[int] = None,
+):
+    if monto <= 0:
+        return
+
+    stmt_opuesta = select(Deuda).where(
+        (Deuda.grupo_id == grupo_id)
+        & (Deuda.deudor_id == acreedor_id)
+        & (Deuda.acreedor_id == deudor_id)
+        & (Deuda.estado == 0)
+    )
+    opuesta = session.exec(stmt_opuesta).first()
+
+    new_c = _to_cents(monto)
+
+    if opuesta:
+        opp_c = _to_cents(opuesta.monto)
+
+        if opp_c > new_c:
+            opuesta.monto = _from_cents(opp_c - new_c)
+            session.add(opuesta)
+            return
+        elif opp_c < new_c:
+            session.delete(opuesta)
+            remain = new_c - opp_c
+            if remain > 0:
+                session.add(Deuda(
+                    gasto_id=gasto_id,
+                    deudor_id=deudor_id,
+                    acreedor_id=acreedor_id,
+                    grupo_id=grupo_id,
+                    monto=_from_cents(remain),
+                    estado=0
+                ))
+            return
+        else:
+            session.delete(opuesta)
+            return
+
+    session.add(Deuda(
+        gasto_id=gasto_id,
+        deudor_id=deudor_id,
+        acreedor_id=acreedor_id,
+        grupo_id=grupo_id,
+        monto=monto,
+        estado=0
+    ))
+
+
+def _recalculate_debts_for_group(session: Session, group_id: int):
+    """
+    Recalcula todas las deudas para todos los gastos del grupo.
+    Se debe llamar cuando se agrega un nuevo miembro al grupo.
+    """
+    # Obtener todos los miembros del grupo
+    statement = select(Usuario).join(UsuarioGrupo).where(
+        UsuarioGrupo.grupo_id == group_id
+    )
+    group_members = session.exec(statement).all()
+    total_members = len(group_members)
+
+    if total_members <= 1:
+        return  # No hay nada que recalcular
+
+    # Obtener todos los gastos del grupo
+    gastos = session.exec(select(Gasto).where(Gasto.grupo_id == group_id)).all()
+
+    for gasto in gastos:
+        # Eliminar deudas existentes para este gasto
+        deudas_existentes = session.exec(
+            select(Deuda).where(Deuda.gasto_id == gasto.id)
+        ).all()
+        for deuda in deudas_existentes:
+            session.delete(deuda)
+
+        # Recalcular shares con todos los miembros actuales
+        amount_cents = _to_cents(gasto.valor)
+        base = amount_cents // total_members
+        remainder = amount_cents % total_members
+
+        members_sorted = sorted(group_members, key=lambda u: u.id)
+        shares = {}
+        for idx, m in enumerate(members_sorted):
+            cents = base + (1 if idx < remainder else 0)
+            shares[m.id] = _from_cents(cents)
+
+        # Crear nuevas deudas para todos los miembros (excepto el que pagó)
+        for member in group_members:
+            if member.id != gasto.usuario_id:
+                _net_or_create_debt(
+                    session=session,
+                    grupo_id=group_id,
+                    deudor_id=member.id,
+                    acreedor_id=gasto.usuario_id,
+                    monto=shares[member.id],
+                    gasto_id=gasto.id,
+                )
+
+    session.commit()
 
 
 @router.get("/", response_model=List[dict])
@@ -135,6 +253,30 @@ def create_invite(
     }
 
 
+@router.post("/{group_id}/recalculate-debts", response_model=dict)
+def recalculate_group_debts(
+    group_id: int,
+    session: Session = Depends(get_session)
+):
+    """
+    Endpoint manual para recalcular todas las deudas del grupo.
+    Útil cuando se agregan miembros o se necesita recalcular.
+    """
+    group = session.get(Grupo, group_id)
+    if not group:
+        raise HTTPException(status_code=404, detail="Grupo no encontrado")
+
+    try:
+        _recalculate_debts_for_group(session, group_id)
+        return {
+            "success": True,
+            "group_id": group_id,
+            "message": "Deudas recalculadas exitosamente"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al recalcular: {str(e)}")
+
+
 @router.post("/accept/{code}", response_model=dict, tags=["invites"])
 def accept_invite(
     code: str,
@@ -171,8 +313,13 @@ def accept_invite(
     if ya_miembro:
         return {"joined": True, "group_id": meta["group_id"], "message": "Ya es miembro"}
 
+    # Agregar el usuario al grupo
     session.add(UsuarioGrupo(usuario_id=user_id, grupo_id=meta["group_id"]))
     session.commit()
+
+    # Recalcular todas las deudas del grupo con el nuevo miembro
+    print(f"🔄 Recalculando deudas para el grupo {meta['group_id']} con el nuevo miembro {user_id}")
+    _recalculate_debts_for_group(session, meta["group_id"])
 
     meta["used"] += 1
 
@@ -184,5 +331,6 @@ def accept_invite(
         "joined": True,
         "group_id": meta["group_id"],
         "members": miembros_count,
-        "used_count": meta["used"]
+        "used_count": meta["used"],
+        "message": "Deudas recalculadas con el nuevo miembro"
     }

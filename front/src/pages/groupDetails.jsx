@@ -16,6 +16,8 @@ function parseCSV(csv) {
   });
 }
 
+const API = 'http://localhost:8000';
+
 const GroupDetails = ({ group }) => {
   const [search, setSearch] = useState("");
   const [propietario, setPropietario] = useState("");
@@ -58,14 +60,71 @@ const GroupDetails = ({ group }) => {
   }
 
   useEffect(() => {
-    fetch('/src/data/gastos.csv')
-      .then(res => res.text())
-      .then(text => {
-        setData(parseCSV(text));
+    const fetchExpenses = async () => {
+      setLoading(true);
+      try {
+        // Obtener usuario actual
+        const getCurrentUser = () => {
+          try {
+            const raw = localStorage.getItem('usuario') || sessionStorage.getItem('user');
+            if (!raw) return null;
+            const u = JSON.parse(raw);
+            return u?.id ? { id: Number(u.id), nombre: u.nombre || '', email: u.email || u.mail || '' } : null;
+          } catch {
+            return null;
+          }
+        };
+
+        const currentUser = getCurrentUser();
+        if (!currentUser) {
+          console.warn('No se encontró usuario actual');
+          setLoading(false);
+          return;
+        }
+
+        const groupId = group?.id || sessionStorage.getItem('current_group_id') || 1;
+        console.log('📊 Fetching expenses for group:', groupId, 'user:', currentUser.id);
+
+        const authHeaders = () => {
+          const h = {};
+          const token = localStorage.getItem('token') || sessionStorage.getItem('access_token');
+          if (token) h['Authorization'] = `Bearer ${token}`;
+          return h;
+        };
+
+        const response = await fetch(`${API}/expenses/group/${groupId}`, {
+          headers: authHeaders()
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+
+        const expenses = await response.json();
+        console.log('✅ Expenses loaded:', expenses);
+
+        // Transformar los datos para que coincidan con el formato esperado
+        const transformedData = (Array.isArray(expenses) ? expenses : []).map(exp => ({
+          id: exp.id,
+          titulo: exp.titulo || '',
+          descripcion: exp.descripcion || '',
+          autor: exp.autor || `Usuario ${exp.usuario_id}`,
+          valor: exp.valor || 0,
+          fecha: exp.fecha || '',
+          comprobante: exp.comprobante || null
+        }));
+
+        setData(transformedData);
+      } catch (error) {
+        console.error('❌ Error loading expenses:', error);
+        setData([]);
+      } finally {
         setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
+      }
+    };
+
+    fetchExpenses();
+  }, [group]);
 
   // Obtener propietarios únicos
   const propietarios = [...new Set(data.map((g) => g.autor))];

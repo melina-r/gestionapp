@@ -93,17 +93,36 @@ export default function Resume({ groupId }) {
     setLoading(true);
     setError("");
     try {
+      console.log('🔐 Current User:', currentUser);
+      console.log('👤 Current User ID:', currentUserId);
+      console.log('🏢 Group ID:', groupId);
+
       const usersData = {};
       const uniqueUserIds = new Set();
 
       const groupIdParam = groupId ? `?grupo_id=${groupId}` : '';
+      const debtsUrl = `${API}/expenses/debts/${currentUserId}${groupIdParam}`;
+      const creditsUrl = `${API}/expenses/credits/${currentUserId}${groupIdParam}`;
+
+      console.log('📡 Fetching debts from:', debtsUrl);
+      console.log('📡 Fetching credits from:', creditsUrl);
+
       const [debtsResponse, creditsResponse] = await Promise.all([
-        fetch(`${API}/expenses/debts/${currentUserId}${groupIdParam}`, { headers: authHeaders() }),
-        fetch(`${API}/expenses/credits/${currentUserId}${groupIdParam}`, { headers: authHeaders() })
+        fetch(debtsUrl, { headers: authHeaders() }),
+        fetch(creditsUrl, { headers: authHeaders() })
       ]);
 
-      const debtsData = await debtsResponse.json();
-      const creditsData = await creditsResponse.json();
+      console.log('📥 Debts response status:', debtsResponse.status);
+      console.log('📥 Credits response status:', creditsResponse.status);
+
+      let debtsData = await debtsResponse.json();
+      let creditsData = await creditsResponse.json();
+
+      debtsData = Array.isArray(debtsData) ? debtsData : [];
+      creditsData = Array.isArray(creditsData) ? creditsData : [];
+
+      console.log('📊 Debts data:', debtsData);
+      console.log('📊 Credits data:', creditsData);
 
       debtsData.forEach(debt => uniqueUserIds.add(debt.acreedor_id));
       creditsData.forEach(credit => uniqueUserIds.add(credit.deudor_id));
@@ -116,23 +135,41 @@ export default function Resume({ groupId }) {
         }
       }
 
-      const pendingDebts = debtsData.filter(debt => debt.estado === 0);
+      const pendingDebts = debtsData.filter(debt => Number(debt.estado) === 0);
+      const pendingCredits = creditsData.filter(credit => Number(credit.estado) === 0);
+
+      console.log('💳 Pending debts:', pendingDebts);
+      console.log('💰 Pending credits:', pendingCredits);
+
       const groupedDebts = groupByUser(pendingDebts, 'acreedor_id');
-      const groupedCredits = groupByUser(creditsData, 'deudor_id');
+      const groupedCredits = groupByUser(pendingCredits, 'deudor_id');
 
       const expenseIds = new Set([
         ...pendingDebts.map(d => d.gasto_id),
-        ...creditsData.map(c => c.gasto_id)
+        ...pendingCredits.map(c => c.gasto_id)
       ]);
+
+      console.log('🔍 Expense IDs to fetch:', Array.from(expenseIds));
 
       const expensesData = {};
       for (const id of expenseIds) {
+        if (!id) {
+          console.warn('⚠️ Skipping undefined expense ID');
+          continue;
+        }
         const response = await fetch(`${API}/expenses/${id}`, { headers: authHeaders() });
         if (response.ok) {
           const expense = await response.json();
           expensesData[id] = expense;
+          console.log(`✅ Loaded expense ${id}:`, expense);
+        } else {
+          console.error(`❌ Failed to load expense ${id}:`, response.status);
         }
       }
+
+      console.log('📦 All expenses loaded:', expensesData);
+      console.log('👥 Grouped debts:', groupedDebts);
+      console.log('💰 Grouped credits:', groupedCredits);
 
       setDebts(groupedDebts);
       setCredits(groupedCredits);
@@ -217,6 +254,10 @@ export default function Resume({ groupId }) {
   const renderExpandableTable = (data, type) => {
     const expanded = type === 'debt' ? expandedDebts : expandedCredits;
     const toggleFunction = (userId) => toggleExpansion(userId, type);
+
+    if (Object.keys(data).length === 0) {
+      return <p style={{ color: '#666', fontSize: '0.95rem', padding: '1rem' }}>No hay {type === 'debt' ? 'deudas' : 'créditos'} pendientes.</p>;
+    }
 
     return (
       <table className="resume-table">
