@@ -407,6 +407,65 @@ def filter_expenses_by_title(
     return expenses
 
 
+@router.patch("/debts/{debt_id}/settle")
+def settle_debt(debt_id: int, session: Session = Depends(get_session)):
+    """Marca una deuda específica como pagada"""
+    debt = session.get(Deuda, debt_id)
+    if not debt:
+        raise HTTPException(status_code=404, detail="Deuda no encontrada")
+
+    if debt.estado == 1:
+        raise HTTPException(status_code=400, detail="Esta deuda ya está saldada")
+
+    debt.estado = 1
+    session.add(debt)
+    session.commit()
+    session.refresh(debt)
+
+    return {
+        "message": "Deuda marcada como pagada exitosamente",
+        "debt_id": debt_id,
+        "monto": str(debt.monto)
+    }
+
+
+@router.post("/debts/settle-all")
+def settle_all_debts_with_creditor(
+    deudor_id: int = Query(..., description="ID del deudor que paga"),
+    acreedor_id: int = Query(..., description="ID del acreedor que recibe"),
+    grupo_id: int = Query(..., description="ID del grupo"),
+    session: Session = Depends(get_session)
+):
+    """Salda todas las deudas pendientes entre un deudor y un acreedor en un grupo específico"""
+    stmt = select(Deuda).where(
+        (Deuda.deudor_id == deudor_id) &
+        (Deuda.acreedor_id == acreedor_id) &
+        (Deuda.grupo_id == grupo_id) &
+        (Deuda.estado == 0)
+    )
+    debts = session.exec(stmt).all()
+
+    if not debts:
+        raise HTTPException(status_code=404, detail="No se encontraron deudas pendientes")
+
+    total_amount = Decimal("0.00")
+    debt_ids = []
+
+    for debt in debts:
+        debt.estado = 1
+        total_amount += Decimal(str(debt.monto))
+        debt_ids.append(debt.id)
+        session.add(debt)
+
+    session.commit()
+
+    return {
+        "message": f"Se saldaron {len(debts)} deuda(s) exitosamente",
+        "total_amount": str(total_amount),
+        "debt_ids": debt_ids
+    }
+
+
 # Ruta dinámica al final para no pisar /summary o /settlements
 @router.get("/{expense_id}", response_model=GastoPublic)
 def get_expense(expense_id: int, session: Session = Depends(get_session)):
