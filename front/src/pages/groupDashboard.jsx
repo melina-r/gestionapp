@@ -2,6 +2,8 @@ import { useState } from 'react';
 import BalanceCards from '../components/balance_cards';
 import Resume from '../components/resume';
 import GroupDetails from './groupDetails';
+import Debts from './debits';
+import Credits from './credits';
 import Tabs from '../components/tabs';
 import RegisterExpenseModal from '../components/registerModal';
 import '../styles/groupDashboard.css';
@@ -24,7 +26,7 @@ const GroupDashboard = ({ group, onBack }) => {
       </div>
 
       <Tabs
-        tabs={['Dashboard', 'Detalles']}
+        tabs={['Inicio', 'Detalles', 'Deudas', 'Créditos']}
         onTabChange={setSelectedTab}
       />
 
@@ -37,6 +39,14 @@ const GroupDashboard = ({ group, onBack }) => {
 
       {selectedTab === 1 && (
         <GroupDetails group={group} />
+      )}
+
+      {selectedTab === 2 && (
+        <Debts groupId={group.id} />
+      )}
+
+      {selectedTab === 3 && (
+        <Credits groupId={group.id} />
       )}
     </div>
   );

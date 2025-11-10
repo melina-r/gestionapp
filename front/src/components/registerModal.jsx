@@ -107,7 +107,7 @@ const handleSubmit = async (e, groupId) => {
 
                 <form className="modal__form" onSubmit={(e) => handleSubmit(e, groupId)}>
                   <div className="field">
-                    <label>Nombre *</label>
+                    <label>Titulo del gasto *</label>
                     <input
                         type="text"
                         value={nombre}

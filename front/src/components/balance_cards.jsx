@@ -122,8 +122,8 @@ if (gastos.length > 0 && usuario) {
   const cardData = [
     { label: 'Gastos propios', value: `$ ${propios.toFixed(2)}`, description: 'Gastos registrados por ti', color: '#4CAF50' },
     { label: 'A pagar', value: `$ ${aPagar.toFixed(2)}`, description: 'Lo que debés a otros', color: '#f44336' },
-    { label: 'Gastos totales', value: `$ ${total.toFixed(2)}`, description: 'Total de gastos (visibles)', color: '#2196F3' },
     { label: 'A recibir', value: `$ ${aRecibir.toFixed(2)}`, description: 'Lo que otros te deben', color: '#FF9800' },
+    { label: 'Gastos totales', value: `$ ${total.toFixed(2)}`, description: 'Total de gastos (visibles)', color: '#2196F3' },
   ];
 
   const doRefresh = () => {

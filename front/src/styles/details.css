@@ -150,3 +150,21 @@
 .priority.baja {
   background: #388e3c;
 }
+
+.debt-paid td {
+  color: #9ca3af; /* gris claro */
+  background: #fafafa;
+}
+
+.debt-paid {
+  opacity: 0.95;
+}
+
+.credit-paid td {
+  color: #9ca3af; /* gris claro */
+  background: #fafafa;
+}
+
+.credit-paid {
+  opacity: 0.95;
+}
